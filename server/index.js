@@ -1,15 +1,12 @@
-const express = require('express');
-const cors = require('cors');
-const todoRoutes = require('./src/routes/todo.routes');
+import app from "./src/app.js";
 
-const app = express();
-const port = 3000;
+const PORT = process.env.PORT || 3055;
 
-app.use(cors());
-app.use(express.json());
+const server = app.listen(PORT, () => {
+  console.log(`WSV eCommerce start with ${PORT}`);
+});
 
-app.use('/todos', todoRoutes);
-
-app.listen(port, () => {
-  console.log(`Example app listening at http://localhost:${port}`);
+// Xử lý khi ấn Ctrl+C (Graceful Shutdown)
+process.on("SIGINT", () => {
+  server.close(() => console.log(`Exit Server Express`));
 });

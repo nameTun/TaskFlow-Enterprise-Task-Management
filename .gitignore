@@ -37,7 +37,7 @@ lerna-debug.log*
 Thumbs.db
 
 # Project documentation (as requested)
-document/
+# document/
 
 # Test reports
 coverage

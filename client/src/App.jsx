@@ -1,20 +1,27 @@
 import { Routes, Route } from 'react-router-dom';
+import { ThemeProvider } from './context/theme/ThemeContext';
+import Layout from './components/layout/Layout';
+import TodoPage from './components/todos/TodoPage';
+
+import RegisterPage from './components/auth/RegisterPage';
+import LoginPage from './components/auth/LoginPage';
 
 // Placeholder pages - to be created later
-const HomePage = () => <div>HomePage</div>;
-const LoginPage = () => <div>LoginPage</div>;
-const RegisterPage = () => <div>RegisterPage</div>;
 const NotFoundPage = () => <div>404 - Page Not Found</div>;
 
 
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
-      <Route path="*" element={<NotFoundPage />} />
-    </Routes>
+    <ThemeProvider>
+      <Layout>
+        <Routes>
+          <Route path="/" element={<TodoPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </Layout>
+    </ThemeProvider>
   );
 }
 
