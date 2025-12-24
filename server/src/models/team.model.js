@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
-
+const DOCUMENT_NAME = "Team";
+const COLLECTION_NAME = "Teams";
 // Định nghĩa schema cho model Team (đội/nhóm)
 const teamSchema = new mongoose.Schema(
   {
@@ -75,10 +76,11 @@ const teamSchema = new mongoose.Schema(
   },
   {
     timestamps: true, // Tự động thêm trường `createdAt` và `updatedAt`
+    collation:COLLECTION_NAME
   }
 );
 
 // Tạo model Team từ schema
-const Team = mongoose.model('Team', teamSchema);
+const Team = mongoose.model(DOCUMENT_NAME, teamSchema);
 
 export default Team;

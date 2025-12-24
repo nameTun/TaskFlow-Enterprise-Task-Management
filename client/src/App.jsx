@@ -1,6 +1,6 @@
 import React from "react";
 import {
-  HashRouter,
+  BrowserRouter,
   Routes,
   Route,
   Navigate,
@@ -51,7 +51,7 @@ const AppContent = () => {
       }}
     >
       <StyleProvider layer>
-        <HashRouter>
+        <BrowserRouter>
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route
@@ -71,7 +71,7 @@ const AppContent = () => {
               }
             />
           </Routes>
-        </HashRouter>
+        </BrowserRouter>
       </StyleProvider>
     </ConfigProvider>
   );

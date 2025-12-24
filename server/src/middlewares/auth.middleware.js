@@ -11,14 +11,10 @@ import User from '../models/user.model.js';
  */
 const protect = async (req, res, next) => {
   let token;
-
-  // 1. Kiểm tra Access Token trong cookies trước
-  if (req.cookies && req.cookies.accessToken) {
-    token = req.cookies.accessToken;
-  }
-  // 2. Nếu không có trong cookie, kiểm tra trong header Authorization (dạng Bearer token)
-  else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+  // 1. Chỉ kiểm tra token trong header Authorization
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     token = req.headers.authorization.split(' ')[1]; // Lấy phần token sau 'Bearer '
+    
   }
 
   // Nếu không tìm thấy token nào
@@ -29,7 +25,7 @@ const protect = async (req, res, next) => {
   try {
     // 3. Xác minh tính hợp lệ của token bằng secret key
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
+    
     // 4. Tìm người dùng dựa trên ID từ token đã giải mã
     // Bỏ qua trường passwordHash để không trả về mật khẩu
     req.user = await User.findById(decoded.id).select('-passwordHash');

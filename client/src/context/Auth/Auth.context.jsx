@@ -23,8 +23,8 @@ export const AuthProvider = ({ children }) => {
         const response = await api.get("/auth/me");
         const currentToken = useAuthStore.getState().accessToken;
 
-        if (response.metadata) {
-          loginSuccess(response.metadata, currentToken);
+        if (response.data.metadata) {
+          loginSuccess(response.data.metadata, currentToken);
         }
       } catch (error) {
         console.log("Phiên đăng nhập không tồn tại hoặc đã hết hạn.");
