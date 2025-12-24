@@ -1,9 +1,11 @@
 // Hàm bọc (Higher Order Function)
-export default asyncHandler = (fn) => {
+ const asyncHandler = (fn) => {
   return (req, res, next) => {
     fn(req, res, next).catch(next);
   };
 };
+export default asyncHandler;
+
 
 // Và đây là Controller của bạn sau khi dùng nó:
 // task.controller.js

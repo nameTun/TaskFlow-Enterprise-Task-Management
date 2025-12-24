@@ -1,59 +1,65 @@
 import Joi from 'joi';
+import { BadRequestError } from '../core/error.response.js';
+import RegisterUserDto from '../dtos/register-user.dto.js';
+import LoginUserDto from '../dtos/login-user.dto.js';
 
-// Định nghĩa schema xác thực cho việc đăng ký người dùng mới
+// Schema for user registration
 const registerSchema = Joi.object({
-  // Trường `name`: phải là chuỗi, độ dài từ 3 đến 50 ký tự, và là bắt buộc.
   name: Joi.string().min(3).max(50).required().messages({
-    'string.base': 'Tên phải là một chuỗi văn bản',
-    'string.empty': 'Tên không được để trống',
-    'string.min': 'Tên phải có ít nhất {#limit} ký tự',
-    'string.max': 'Tên không được vượt quá {#limit} ký tự',
-    'any.required': 'Tên là trường bắt buộc',
+    'string.base': 'Name must be a text string',
+    'string.empty': 'Name is not allowed to be empty',
+    'string.min': 'Name must have at least {#limit} characters',
+    'string.max': 'Name cannot exceed {#limit} characters',
+    'any.required': 'Name is a required field',
   }),
-  // Trường `email`: phải là chuỗi, định dạng email hợp lệ, và là bắt buộc.
   email: Joi.string().email().required().messages({
-    'string.email': 'Email phải là một địa chỉ email hợp lệ',
-    'any.required': 'Email là trường bắt buộc',
+    'string.email': 'Email must be a valid email address',
+    'any.required': 'Email is a required field',
   }),
-  // Trường `password`: phải là chuỗi, độ dài ít nhất 8 ký tự,
-  // và phải chứa ít nhất một chữ cái viết hoa, một chữ cái viết thường và một số. Bắt buộc.
-  password: Joi.string().min(8).pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])')).required().messages({
-      'string.pattern.base': 'Mật khẩu phải chứa ít nhất một chữ cái viết hoa, một chữ cái viết thường và một số',
-      'string.min': 'Mật khẩu phải có ít nhất 8 ký tự',
-      'any.required': 'Mật khẩu là trường bắt buộc',
-  }),
+  password: Joi.string()
+    .min(8)
+    .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])'))
+    .required()
+    .messages({
+      'string.pattern.base':
+        'Password must contain at least one uppercase letter, one lowercase letter, and one number',
+      'string.min': 'Password must be at least 8 characters long',
+      'any.required': 'Password is a required field',
+    }),
 });
 
-// Định nghĩa schema xác thực cho việc đăng nhập người dùng
+// Schema for user login
 const loginSchema = Joi.object({
-    // Trường `email`: phải là chuỗi, định dạng email hợp lệ, và là bắt buộc.
-    email: Joi.string().email().required().messages({
-        'string.email': 'Email phải là một địa chỉ email hợp lệ',
-        'any.required': 'Email là trường bắt buộc',
-    }),
-    // Trường `password`: là bắt buộc.
-    password: Joi.string().required().messages({
-        'any.required': 'Mật khẩu là trường bắt buộc',
-    }),
+  email: Joi.string().email().required().messages({
+    'string.email': 'Email must be a valid email address',
+    'any.required': 'Email is a required field',
+  }),
+  password: Joi.string().required().messages({
+    'any.required': 'Password is a required field',
+  }),
 });
-
 
 /**
- * @desc Middleware để xác thực body của yêu cầu dựa trên schema Joi cung cấp.
- * @param {Joi.Schema} schema Schema Joi để xác thực.
- * @returns {function} Middleware Express.
+ * @desc Middleware to validate the request body against a Joi schema and create a DTO.
+ * @param {Joi.Schema} schema The Joi schema to validate against.
+ * @param {class} DtoClass The DTO class to instantiate.
+ * @returns {function} Express middleware.
  */
-const validate = (schema) => (req, res, next) => {
-  // Thực hiện xác thực body của yêu cầu với schema đã cho
-  const { error } = schema.validate(req.body);
+const validateAndCreateDto = (schema, DtoClass) => (req, res, next) => {
+  const { error, value } = schema.validate(req.body);
   if (error) {
-    // Nếu có lỗi xác thực, trả về lỗi 400 Bad Request
-    return res.status(400).json({
-      message: error.details[0].message, // Lấy thông báo lỗi chi tiết đầu tiên
-    });
+    // If validation fails, throw a BadRequestError.
+    // The error handling middleware will catch this and send the response.
+    throw new BadRequestError(error.details[0].message);
   }
-  // Nếu không có lỗi, chuyển sang middleware hoặc route handler tiếp theo
+  // If validation is successful, create a new DTO and attach it to the request.
+  req.dto = new DtoClass(value);
   next();
 };
+// Export ready-to-use validation middlewares
+export const validateRegister = validateAndCreateDto(
+  registerSchema,
+  RegisterUserDto
+);
+export const validateLogin = validateAndCreateDto(loginSchema, LoginUserDto);
 
-export { validate, registerSchema, loginSchema };

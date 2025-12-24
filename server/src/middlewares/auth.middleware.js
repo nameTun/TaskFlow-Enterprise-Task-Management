@@ -9,7 +9,7 @@ import User from '../models/user.model.js';
  * @param {object} res Đối tượng phản hồi.
  * @param {function} next Hàm middleware tiếp theo.
  */
-const verifyToken = async (req, res, next) => {
+const protect = async (req, res, next) => {
   let token;
 
   // 1. Kiểm tra Access Token trong cookies trước
@@ -63,4 +63,4 @@ const authorizeRoles = (allowedRoles) => (req, res, next) => {
   next();
 };
 
-export { verifyToken, authorizeRoles };
+export { protect, authorizeRoles };

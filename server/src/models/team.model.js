@@ -18,7 +18,7 @@ const teamSchema = new mongoose.Schema(
     // Trường leadId: ID của trưởng nhóm, tham chiếu đến model User, bắt buộc.
     leadId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
       index: true, // Đánh chỉ mục để tối ưu truy vấn
       required: true, // Một đội phải có trưởng nhóm
     },
@@ -28,13 +28,13 @@ const teamSchema = new mongoose.Schema(
         // userId: ID của thành viên, tham chiếu đến model User.
         userId: {
           type: mongoose.Schema.Types.ObjectId,
-          ref: 'User',
+          ref: "User",
         },
         // role: Vai trò của thành viên trong đội, mặc định là 'member'.
         role: {
           type: String,
-          enum: ['member', 'viewer'],
-          default: 'member',
+          enum: ["member", "viewer"],
+          default: "member",
         },
         // joinedAt: Thời gian thành viên tham gia đội, mặc định là thời gian hiện tại.
         joinedAt: {
@@ -59,14 +59,19 @@ const teamSchema = new mongoose.Schema(
     // Trường createdBy: ID của người đã tạo đội, tham chiếu đến model User, bắt buộc.
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
       required: true,
     },
-    // Trường isActive: Trạng thái hoạt động của đội, mặc định là true.
-    isActive: {
-      type: Boolean,
-      default: true,
+    deletedAt: {
+      type: Date,
+      default: null,
+      index: true, // Di chuyển index vào đây
     },
+    // Trường isActive: Trạng thái hoạt động của đội, mặc định là true.
+    // isActive: {
+    //   type: Boolean,
+    //   default: true,
+    // },
   },
   {
     timestamps: true, // Tự động thêm trường `createdAt` và `updatedAt`

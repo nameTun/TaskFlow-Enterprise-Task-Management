@@ -1,5 +1,53 @@
-/* You can add global custom styles here */
+
+/* Khai báo thứ tự Layer: Antd thấp nhất, sau đó đến Tailwind */
+@layer ant-design, tailwind-base, tailwind-utilities;
+
+@layer tailwind-base {
+  @tailwind base;
+}
+
+@tailwind components;
+@tailwind utilities;
+
+/* Manual Reset vì preflight: false */
+/* Ant Design cần preflight: false để không bị hỏng style nút bấm, title... */
+/* Nhưng chúng ta cần border-box để layout không bị vỡ */
+*, ::before, ::after {
+  box-sizing: border-box;
+  border-width: 0;
+  border-style: solid;
+  border-color: #e5e7eb; /* tailwind gray-200 */
+}
+
+/* Reset lại font mặc định cho giống trình duyệt */
+html {
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+  tab-size: 4;
+}
+
 body {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+  margin: 0;
+  line-height: inherit;
+}
+
+/* Custom Scrollbar */
+@layer utilities {
+  ::-webkit-scrollbar { 
+    width: 6px; 
+    height: 6px; 
+  }
+
+  ::-webkit-scrollbar-track { 
+    background: transparent; 
+  }
+
+  ::-webkit-scrollbar-thumb { 
+    background: #ccc; 
+    border-radius: 3px; 
+  }
+
+  .dark ::-webkit-scrollbar-thumb { 
+    background: #444; 
+  }
 }

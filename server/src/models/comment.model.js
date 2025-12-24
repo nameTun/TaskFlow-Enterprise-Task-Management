@@ -10,14 +10,13 @@ const commentSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Task", // Giả sử 'Todo' là tên model cho công việc
       required: true,
-      index: true, // Đánh chỉ mục để tối ưu truy vấn
     },
     // Trường userId: ID của người dùng đã tạo bình luận, tham chiếu đến model User, bắt buộc.
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      index: true, // Đánh chỉ mục để tối ưu truy vấn
+      index: true, // Giữ lại để tìm "Tất cả bình luận của User A"
     },
     // Trường content: Nội dung của bình luận, bắt buộc.
     content: {
@@ -37,13 +36,14 @@ const commentSchema = new mongoose.Schema(
       ref: "Comment",
     },
     // Trường isDeleted: Cờ đánh dấu bình luận đã bị xóa mềm hay chưa, mặc định là false.
-    isDeleted: {
-      type: Boolean,
-      default: false,
-    },
+    // isDeleted: {
+    //   type: Boolean,
+    //   default: false,
+    // },
     // Trường deletedAt: Thời gian bình luận bị xóa mềm.
     deletedAt: {
       type: Date,
+      default: null,
     },
   },
   {
@@ -52,11 +52,12 @@ const commentSchema = new mongoose.Schema(
   }
 );
 
-// Đánh chỉ mục (theo thiết kế trong Data Design.ini) để tối ưu hóa truy vấn
-// 1. Chỉ mục tổng hợp để lấy bình luận theo taskId, sắp xếp theo thời gian tạo mới nhất
+// Sắp xếp comment mới nhất lên đầu của một Task (Query chính của chức năng Comment)
+// Index này vừa hỗ trợ lọc theo taskId, vừa hỗ trợ sort createdAt
 commentSchema.index({ taskId: 1, createdAt: -1 });
-// 2. Chỉ mục tổng hợp để lấy bình luận theo userId, sắp xếp theo thời gian tạo mới nhất
-commentSchema.index({ userId: 1, createdAt: -1 });
+
+// Query lọc comment chưa xóa
+commentSchema.index({ taskId: 1, deletedAt: 1 });
 
 // Tạo model Comment từ schema
 const Comment = mongoose.model(DOCUMENT_NAME, commentSchema);

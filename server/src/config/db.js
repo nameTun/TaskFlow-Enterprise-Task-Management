@@ -12,11 +12,7 @@ const connectDB = async () => {
   try {
     // Sử dụng mongoose.connect để kết nối đến MongoDB.
     // MONGO_URI được lấy từ biến môi trường, chứa chuỗi kết nối đến DB.
-    // Các tùy chọn `useNewUrlParser` và `useUnifiedTopology` được dùng để tránh các cảnh báo lỗi cũ.
-    const conn = await mongoose.connect(process.env.MONGO_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    const conn = await mongoose.connect(process.env.MONGO_URI);
     console.log(`MongoDB đã kết nối: ${conn.connection.host}`);
   } catch (error) {
     console.error(`Lỗi kết nối MongoDB: ${error.message}`);

@@ -1,4 +1,6 @@
 import mongoose from 'mongoose';
+import Counter from './counter.model.js';
+
 
 const DOCUMENT_NAME = "Task";
 const COLLECTION_NAME = "Tasks";
@@ -6,6 +8,11 @@ const COLLECTION_NAME = "Tasks";
 // Định nghĩa schema cho model Todo (công việc)
 const taskSchema = new mongoose.Schema(
   {
+    // Short ID: "TASK-1001"
+    taskId: {
+      type: String,
+      unique: true, // Đã tạo index unique, không cần khai báo lại ở cuối file
+    },
     // Trường title: Tiêu đề công việc, bắt buộc, cắt khoảng trắng.
     title: {
       type: String,
@@ -36,6 +43,7 @@ const taskSchema = new mongoose.Schema(
         trim: true,
       },
     ],
+
     // --- THỜI GIAN ---
     startDate: { type: Date },
     // Trường dueDate: Ngày hết hạn của công việc.
@@ -92,32 +100,53 @@ const taskSchema = new mongoose.Schema(
       ref: "User",
     },
     // Trường isArchived: Đánh dấu công việc đã được lưu trữ (soft delete), mặc định là false.
-    isArchived: {
-      type: Boolean,
-      default: false,
+    // isArchived: {
+    //   type: Boolean,
+    //   default: false,
+    // },
+    deletedAt: {
+      type: Date,
+      default: null,
+      index: true, // Index hỗ trợ lọc task chưa xóa
     },
   },
   {
     timestamps: true, // Tự động thêm trường `createdAt` và `updatedAt`
-    collection: COLLECTION_NAME, // Tên collection trong MongoDB  
+    collection: COLLECTION_NAME, // Tên collection trong MongoDB
   }
 );
+// --- MIDDLEWARE (LOGIC SINH SHORT ID) ---
+taskSchema.pre('save', async function(next) {
+  if (this.isNew) {
+    try {
+      const counter = await Counter.findByIdAndUpdate(
+        { _id: 'taskId' },
+        { $inc: { seq: 1 } },
+        { new: true, upsert: true } 
+      );
+      this.taskId = `TASK-${counter.seq}`;
+      next();
+    } catch (error) {
+      next(error);
+    }
+  } else {
+    next();
+  }
+});
 
 // Đánh chỉ mục (theo thiết kế trong Data Design.ini) để tối ưu hóa truy vấn
-// 1. Chỉ mục tổng hợp cho các todo của người tạo, trạng thái và ngày tạo
-taskSchema.index({ createdBy: 1, status: 1, createdAt: -1 });
-// 2. Chỉ mục tổng hợp cho các todo được giao và trạng thái
+// --- COMPOUND INDEXES (Quan trọng cho Dashboard/Filter) ---
+// 1. Lấy task của user theo trạng thái (VD: Task tôi đang làm là gì?)
 taskSchema.index({ assignedTo: 1, status: 1 });
-// 3. Chỉ mục tổng hợp cho các todo của đội và trạng thái
+
+// 2. Lấy task tôi tạo, mới nhất lên đầu
+taskSchema.index({ createdBy: 1, status: 1, createdAt: -1 });
+
+// 3. Lấy task của team theo trạng thái
 taskSchema.index({ teamId: 1, status: 1 });
-// 4. Chỉ mục tổng hợp cho ngày hết hạn và trạng thái
-taskSchema.index({ dueDate: 1, status: 1 });
-// 5. Chỉ mục tìm kiếm toàn văn cho tiêu đề và mô tả
+
+// 4. Full-text Search
 taskSchema.index({ title: 'text', description: 'text' });
-// 6. Chỉ mục cho trường tags
-taskSchema.index({ tags: 1 });
-// 7. Chỉ mục cho trường category
-taskSchema.index({ category: 1 });
 
 // Tạo model Todo từ schema
 const Task = mongoose.model(DOCUMENT_NAME, taskSchema);

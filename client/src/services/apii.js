@@ -1,51 +1,3 @@
-// import axios from "axios";
-
-// // The backend server URL will be read from environment variables
-// const API_BASE_URL =
-//   import.meta.env.VITE_API_URL || "http://localhost:5000/api";
-
-// const apiClient = axios.create({
-//   baseURL: API_BASE_URL,
-//   headers: {
-//     "Content-Type": "application/json",
-//   },
-//   withCredentials: true, // Cho phép gửi cookie (quan trọng cho refresh token)
-// });
-// /**
-//  * Interceptor cho request (yêu cầu gửi đi).
-//  * Nó được sử dụng để tự động gắn Access Token vào header 'Authorization'
-//  * cho mọi request được gửi đi.
-//  */
-// api.interceptors.request.use(
-//   (config) => {
-//     const token = localStorage.getItem("access_token");
-//     if (token) {
-//       config.headers.Authorization = `Bearer ${token}`;
-//     }
-//     return config;
-//   },
-//   (error) => {
-//     return Promise.reject(error);
-//   }
-// );
-
-// // --- Auth Service ---
-// export const loginUser = (credentials) =>
-//   apiClient.post("/auth/login", credentials);
-// export const registerUser = (userData) =>
-//   apiClient.post("/auth/register", userData);
-// export const logoutUser = () => apiClient.post("/auth/logout");
-// export const checkAuthStatus = () => apiClient.get("/auth/status");
-
-// // --- ToDo Service ---
-// export const getTodos = () => apiClient.get("/todos");
-// export const createTodo = (todoData) => apiClient.post("/todos", todoData);
-// export const updateTodo = (id, todoData) =>
-//   apiClient.put(`/todos/${id}`, todoData);
-// export const deleteTodo = (id) => apiClient.delete(`/todos/${id}`);
-
-// export default apiClient;
-
 import axios from "axios";
 // Import store quản lý trạng thái xác thực (ví dụ: Zustand, Redux).
 // Store này sẽ giữ access token trong bộ nhớ JavaScript, không dùng localStorage.
@@ -59,7 +11,7 @@ const api = axios.create({
   // Ví dụ: 'http://localhost:5000/api' cho Express server ở local
   baseURL:
     process.env.NODE_ENV === "development"
-      ? "http://localhost:3000/api"
+      ? "http://localhost:5000/api"
       : "/api",
 
   // `withCredentials: true` là cấu hình CỰC KỲ QUAN TRỌNG.
@@ -126,7 +78,7 @@ api.interceptors.response.use(
         // Vì đã có `withCredentials: true`, trình duyệt sẽ tự động đính kèm
         // httpOnly cookie (chứa refresh token) vào request này.
         // Server sẽ dùng refresh token đó để tạo ra access token mới.
-        const { data } = await api.post("/auth/refresh-token");
+        const { data } = await api.post("/auth/refresh");
 
         // Lấy access token mới từ response của server.
         const newAccessToken = data.accessToken;

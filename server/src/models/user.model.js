@@ -3,29 +3,43 @@ import bcrypt from 'bcryptjs';
 
 const DOCUMENT_NAME = "User";
 const COLLECTION_NAME = "Users";
+/**
+ * USER MODEL (Mô hình Người dùng)
+ * ------------------------------------------------------------------
+ * Quản lý thông tin định danh, xác thực và phân quyền.
+ * Áp dụng các kỹ thuật bảo mật: 
+ * 1. Hash password (bcrypt).
+ * 2. Ẩn trường nhạy cảm (select: false).
+ * 3. Chống Brute-force (khóa tài khoản tạm thời).
+ * 4. Soft Delete (xóa mềm).
+ */
 
 // Định nghĩa schema cho model Người dùng (User)
 const userSchema = new mongoose.Schema(
   {
-    // Trường name: Tên người dùng, bắt buộc.
+    // Tên hiển thị (Full Name)
     name: {
       type: String,
-      required: true,
-      trim: true,
+      required: [true, "Vui lòng nhập tên người dùng"], // Validation message
+      trim: true, // Tự động cắt khoảng trắng đầu/cuối: "  A  " -> "A"
       maxLength: 150,
     },
     // Trường email: bắt buộc, duy nhất, cắt khoảng trắng, chuyển về chữ thường.
     email: {
       type: String,
-      required: true,
-      unique: true,
+      required: [true, "Vui lòng nhập email"],
+      unique: true, // Mongoose tự động tạo Unique Index tại đây
       trim: true,
-      lowercase: true,
+      lowercase: true, // Chuyển về chữ thường để tránh lỗi "User@test.com" != "user@test.com"
     },
+
     // Trường passwordHash: lưu mật khẩu đã được hash bằng bcrypt. Có thể để trống nếu dùng Google OAuth.
+    // Mật khẩu đã mã hóa (Hashed Password)
+    // Quan trọng: select: false để trường này KHÔNG bao giờ được trả về
+    // trong các câu lệnh find() thông thường, tránh lộ hash khi query API list users.
     passwordHash: {
       type: String,
-      //required: function() { return this.authType === 'local' }
+      select: false,
     },
     // authType: {
     //   type: String,
@@ -67,10 +81,12 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ["lead", "member"],
     },
+
+    // --- OAUTH INFO ---
     // Trường oauthProvider: Nhà cung cấp OAuth, ví dụ 'google'.
     oauthProvider: {
       type: String,
-      enum: ["google"],
+      enum: ["google"], // Mở rộng thêm facebook/github sau này nếu cần
     },
     // Trường oauthAccessToken: Access token từ nhà cung cấp OAuth, có thể tạm thời hoặc được refresh định kỳ.
     oauthAccessToken: String,
@@ -84,6 +100,8 @@ const userSchema = new mongoose.Schema(
 
     // lastPasswordChange: Ngày thay đổi mật khẩu gần nhất.
     lastPasswordChange: Date,
+
+    // --- BẢO MẬT (SECURITY) ---
     // failedLoginAttempts: Số lần đăng nhập thất bại liên tiếp, mặc định là 0.
     failedLoginAttempts: {
       type: Number,
@@ -116,27 +134,38 @@ const userSchema = new mongoose.Schema(
   }
 );
 
+// --- METHODS (Phương thức trên từng document) ---
 // Phương thức để so sánh mật khẩu (dùng khi đăng nhập)
 userSchema.methods.comparePassword = async function (candidatePassword) {
-  // Nếu không có passwordHash, không thể so sánh
+  // Nếu user này đăng nhập bằng Google, sẽ không có passwordHash
   if (!this.passwordHash) return false;
   // So sánh mật khẩu ứng viên với mật khẩu đã hash trong DB
   return await bcrypt.compare(candidatePassword, this.passwordHash);
 };
 
+// --- MIDDLEWARE (Hooks) ---
+// Trước khi lưu (save/create), tự động mã hóa mật khẩu
+userSchema.pre('save', async function(next) {
+  // Chỉ hash nếu password có thay đổi (tạo mới hoặc đổi pass)
+  if (!this.isModified('passwordHash')) return next();
+  // Salt rounds = 12 (Độ khó cao, an toàn hơn mức chuẩn 10)
+  this.passwordHash = await bcrypt.hash(this.passwordHash, 12);
+  next();
+});
+
+// --- INDEXES (Tối ưu hiệu suất truy vấn) ---
+// userSchema.index({ role: 1 }); // Để lọc user theo quyền (VD: Lấy tất cả Admin)
+// userSchema.index({ deletedAt: 1 }); // Để lọc user chưa bị xóa (deletedAt: null)
+
 // Đánh chỉ mục để tối ưu hóa truy vấn
-// 1. Chỉ mục cho email (đăng nhập), đảm bảo email là duy nhất
-userSchema.index({ email: 1 }, { unique: true });
-// 2. Chỉ mục cho googleId (tìm kiếm OAuth), đảm bảo googleId là duy nhất và cho phép null
-userSchema.index({ googleId: 1 }, { unique: true, sparse: true });
 // 3. Chỉ mục cho vai trò (truy vấn dựa trên vai trò)
 userSchema.index({ role: 1 });
-// 4. Chỉ mục cho teamId (truy vấn dựa trên đội)
-userSchema.index({ teamId: 1 });
-// 5. Chỉ mục tổng hợp cho người dùng hoạt động và vai trò
-userSchema.index({ isActive: 1, role: 1 });
-// 6. Chỉ mục TTL (Time To Live) cho trường accountLockedUntil, tự động xóa sau 1 giờ nếu có giá trị
-userSchema.index({ accountLockedUntil: 1 }, { expireAfterSeconds: 3600, sparse: true });
+// // 4. Chỉ mục cho teamId (truy vấn dựa trên đội)
+// userSchema.index({ teamId: 1 });
+// // 5. Chỉ mục tổng hợp cho người dùng hoạt động và vai trò
+// userSchema.index({ isActive: 1, role: 1 });
+// // 6. Chỉ mục TTL (Time To Live) cho trường accountLockedUntil, tự động xóa sau 1 giờ nếu có giá trị
+// userSchema.index({ accountLockedUntil: 1 }, { expireAfterSeconds: 3600, sparse: true });
 
 // Tạo model User từ schema
 const User = mongoose.model(DOCUMENT_NAME, userSchema);
