@@ -50,6 +50,8 @@ import axios from "axios";
 // Import store quản lý trạng thái xác thực (ví dụ: Zustand, Redux).
 // Store này sẽ giữ access token trong bộ nhớ JavaScript, không dùng localStorage.
 import { useAuthStore } from "../stores/useAuthStore";
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:3000/api";
 
 // --- CẤU HÌNH AXIOS INSTANCE ---
 // Tạo một instance của Axios để có thể cấu hình tập trung cho tất cả các API call.
@@ -57,10 +59,8 @@ const api = axios.create({
   // Đặt URL gốc cho tất cả các request.
   // Sử dụng biến môi trường để dễ dàng chuyển đổi giữa môi trường dev và production.
   // Ví dụ: 'http://localhost:5000/api' cho Express server ở local
-  baseURL:
-    process.env.NODE_ENV === "development"
-      ? "http://localhost:3000/api"
-      : "/api",
+  // baseURL: process.env.NODE_ENV === "development" ? API_BASE_URL : "/api",
+  baseURL: "/api",
 
   // `withCredentials: true` là cấu hình CỰC KỲ QUAN TRỌNG.
   // Nó cho phép Axios (và trình duyệt) tự động gửi và nhận cookies
