@@ -141,7 +141,9 @@ const logoutUser = async (refreshToken) => {
  * @param {string} incomingRefreshToken Refresh Token từ client.
  * @returns {object} Access Token và Refresh Token mới.
  */
+
 const refreshUserToken = async (incomingRefreshToken) => {
+
   if (!incomingRefreshToken) {
     throw new AuthFailureError("Vui lòng đăng nhập lại (No Token)");
   }
@@ -154,6 +156,7 @@ const refreshUserToken = async (incomingRefreshToken) => {
     // Nếu client gửi token nhưng DB không có -> Có thể token giả hoặc đã bị xóa -> Nghi vấn hack
     // Ở đây có thể thêm logic xóa hết token của user đó để bảo mật
     throw new ForbiddenError("Phiên đăng nhập không hợp lệ hoặc đã hết hạn");
+    
   }
 
   if (
@@ -188,7 +191,7 @@ const refreshUserToken = async (incomingRefreshToken) => {
     );
     await storedRefreshToken.save();
 
-    return { accessToken, refreshToken };
+    return { user, accessToken, refreshToken };
   } catch (error) {
     if (error.name === "TokenExpiredError") {
       await KeyToken.deleteOne({ token: incomingRefreshToken });

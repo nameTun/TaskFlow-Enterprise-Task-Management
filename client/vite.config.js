@@ -9,7 +9,7 @@ export default defineConfig({
     // Proxy giúp gọi API không cần hardcode localhost:5000 ở mọi nơi
     proxy: {
       "/api": {
-        target: "http://localhost:5000",
+        target: "http://localhost:3000",
         changeOrigin: true,
         secure: false,
       },

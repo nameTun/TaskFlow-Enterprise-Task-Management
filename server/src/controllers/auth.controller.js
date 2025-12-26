@@ -10,8 +10,9 @@ import { CREATED, OK } from '../core/success.response.js';
 import { setRefreshTokenCookie } from '../utils/token.utils.js';
 import UserDto from '../dtos/user.dto.js';
 
+// Đăng ký
 export const register = asyncHandler(async (req, res) => {
-  // Data is now in req.dto, validated and created by the middleware
+  // req.body đã được validate và clean bởi validateRegister middleware
   const { user, accessToken, refreshToken } = await registerUser(req.dto);
 
   setRefreshTokenCookie(res, refreshToken);
@@ -24,7 +25,7 @@ export const register = asyncHandler(async (req, res) => {
     },
   }).send(res);
 });
-
+// Đăng nhập
 export const login = asyncHandler(async (req, res) => {
   const { user, accessToken, refreshToken } = await loginUser(req.dto);
 
@@ -68,25 +69,31 @@ export const logout = asyncHandler(async (req, res) => {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
-    path: "/api/auth/refresh-token" // Quan trọng: Path phải khớp với lúc set cookie
+    path: "/" ,
+    // path: "/api/auth/refresh-token" // Quan trọng: Path phải khớp với lúc set cookie
   });
-  // No longer need to clear accessToken cookie
   new OK({ message: "Đăng xuất thành công" }).send(res);
 });
 
+// Refresh Token
 export const refreshAccessToken = asyncHandler(async (req, res) => {
   const incomingRefreshToken = req.cookies.refreshToken;
-  const { accessToken, refreshToken: newRefreshToken } = await refreshUserToken(
-    incomingRefreshToken
-  );
 
-  // Use the helper function to set the new refresh token in the cookie
+  const {
+    user,
+    accessToken,
+    refreshToken: newRefreshToken,
+  } = await refreshUserToken(incomingRefreshToken);
+
   setRefreshTokenCookie(res, newRefreshToken);
 
-  // The new access token is returned in the body
+  // Trả về Access Token và User Info cho Client
   new OK({
-    message: "Làm mới token thành công",
-    metadata: { accessToken },
+    message: "Làm mới phiên đăng nhập thành công",
+    metadata: {
+      user: new UserDto(user), // Trả về user info để restore state
+      tokens: { accessToken },
+    },
   }).send(res);
 });
 

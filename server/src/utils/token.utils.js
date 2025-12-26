@@ -54,8 +54,12 @@ const generateTokens = async (user) => {
 const setRefreshTokenCookie = (res, refreshToken) => {
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    // secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
+    // secure: isProduction, // Localhost (http) -> false, Production (https) -> true
+    // Khi dùng Proxy (Client -> Proxy -> Server), trình duyệt thấy cùng domain
+    // nên Lax là chế độ an toàn và tương thích nhất.
+    sameSite: "lax",
     maxAge: parseInt(
       process.env.JWT_REFRESH_EXPIRES_IN_MS || 7 * 24 * 60 * 60 * 1000
     ), // 7 ngày
