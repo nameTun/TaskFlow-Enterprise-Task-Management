@@ -34,9 +34,22 @@ class TaskDto {
       this.assignedTo = task.assignedTo;
     }
 
+    // Format thông tin người xóa (nếu có và đã populate)
+    if (task.deletedBy && task.deletedBy._id) {
+      this.deletedBy = {
+        id: task.deletedBy._id,
+        name: task.deletedBy.name,
+        email: task.deletedBy.email,
+        avatar: task.deletedBy.avatar,
+      };
+    } else {
+      this.deletedBy = task.deletedBy;
+    }
+
     this.teamId = task.teamId;
     this.createdAt = task.createdAt;
     this.updatedAt = task.updatedAt;
+    this.deletedAt = task.deletedAt; // Thêm trường này để frontend hiển thị ngày xóa
   }
 }
 

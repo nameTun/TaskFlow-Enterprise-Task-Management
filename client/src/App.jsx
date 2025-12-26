@@ -14,6 +14,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import UserManagement from "./pages/UserManagement";
 import TaskDetail from "./pages/TaskDetail";
+import Trash from "./pages/Trash.jsx";
 import LayoutComponent from "./components/Layout";
 
 const ProtectedRoute = ({ children }) => {
@@ -63,6 +64,7 @@ const AppContent = () => {
                       <Route path="/" element={<Dashboard />} />
                       <Route path="/tasks" element={<Dashboard />} />
                       <Route path="/tasks/:id" element={<TaskDetail />} />
+                      <Route path="/trash" element={<Trash />} />
                       <Route path="/users" element={<UserManagement />} />
                       <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>

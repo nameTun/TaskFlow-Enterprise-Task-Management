@@ -10,6 +10,7 @@ import {
   BarChart3,
   Settings,
   LogOut,
+  Trash2,
 } from "lucide-react";
 
 const { Sider } = Layout;
@@ -40,6 +41,11 @@ const Sidebar = ({ collapsed }) => {
       icon: <Users size={20} />,
       label: "Users",
       hidden: user?.role !== UserRole.ADMIN,
+    },
+    {
+      key: "/trash",
+      icon: <Trash2 size={20} />,
+      label: "Trash",
     },
     {
       key: "/settings",

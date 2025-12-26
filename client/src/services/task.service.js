@@ -27,7 +27,13 @@ const taskService = {
     const response = await api.post("/tasks", data);
     return response.data;
   },
-
+  /**
+   * Lấy danh sách tasks đã xóa
+   */
+  getTrash: async () => {
+    const response = await api.get("/tasks/trash");
+    return response.data;
+  },
   /**
    * Cập nhật task
    * @param {string} id
@@ -44,6 +50,15 @@ const taskService = {
    */
   deleteTask: async (id) => {
     const response = await api.delete(`/tasks/${id}`);
+    return response.data;
+  },
+
+  /**
+   * Khôi phục task
+   * @param {string} id
+   */
+  restoreTask: async (id) => {
+    const response = await api.patch(`/tasks/${id}/restore`);
     return response.data;
   },
 };

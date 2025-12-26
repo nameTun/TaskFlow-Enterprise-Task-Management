@@ -1,4 +1,3 @@
-
 import Joi from "joi";
 import { BadRequestError } from "../core/error.response.js";
 
@@ -36,15 +35,34 @@ const createTaskSchema = Joi.object({
     .messages({
       "string.pattern.base": "ID team không hợp lệ",
     }),
+  tags: Joi.array().items(Joi.string().trim()),
+  visibility: Joi.string()
+    .valid("private", "team", "public")
+    .default("private"),
+});
+
+// Schema validate khi update Task (Tất cả field đều optional)
+const updateTaskSchema = Joi.object({
+  title: Joi.string().trim().min(3).max(200),
+  description: Joi.string().trim().allow("").max(2000),
+  status: Joi.string().valid("todo", "in_progress", "review", "done"),
+  priority: Joi.string().valid("low", "medium", "high", "urgent"),
+  startDate: Joi.date().iso(),
+  dueDate: Joi.date().iso(), // Update thì không bắt buộc phải > now (trừ logic nghiệp vụ đặc thù)
+  assignedTo: Joi.string()
+    .regex(/^[0-9a-fA-F]{24}$/)
+    .allow(null), // Cho phép unassign
+  tags: Joi.array().items(Joi.string().trim()),
+  visibility: Joi.string().valid("private", "team", "public"),
 });
 
 /**
- * Middleware validate request body cho create task
+ * Middleware validate Create Task
  */
 const validateCreateTask = (req, res, next) => {
   const { error, value } = createTaskSchema.validate(req.body, {
     abortEarly: false,
-    stripUnknown: true, // Loại bỏ các field không có trong schema để bảo mật
+    stripUnknown: true,
   });
 
   if (error) {
@@ -53,12 +71,27 @@ const validateCreateTask = (req, res, next) => {
       .join(", ");
     throw new BadRequestError(errorMessage);
   }
-
-  // Gán lại value đã validate và clean vào body
   req.body = value;
   next();
 };
 
-export {
-  validateCreateTask,
+/**
+ * Middleware validate Update Task
+ */
+const validateUpdateTask = (req, res, next) => {
+  const { error, value } = updateTaskSchema.validate(req.body, {
+    abortEarly: false,
+    stripUnknown: true,
+  });
+
+  if (error) {
+    const errorMessage = error.details
+      .map((detail) => detail.message)
+      .join(", ");
+    throw new BadRequestError(errorMessage);
+  }
+  req.body = value;
+  next();
 };
+
+export { validateCreateTask, validateUpdateTask };
