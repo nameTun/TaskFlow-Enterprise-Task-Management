@@ -1,5 +1,8 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/user.model.js';
+import { AuthFailureError, ForbiddenError } from "../core/error.response.js"
+import asyncHandler from "../helpers/asyncHandler.js"
+
 
 /**
  * @desc Middleware xác minh Access Token từ người dùng.
@@ -11,26 +14,24 @@ import User from '../models/user.model.js';
  */
 const protect = async (req, res, next) => {
   let token;
-
-  // 1. Kiểm tra Access Token trong cookies trước
-  if (req.cookies && req.cookies.accessToken) {
-    token = req.cookies.accessToken;
-  }
-  // 2. Nếu không có trong cookie, kiểm tra trong header Authorization (dạng Bearer token)
-  else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+  // Chỉ kiểm tra token trong header Authorization
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     token = req.headers.authorization.split(' ')[1]; // Lấy phần token sau 'Bearer '
+    
   }
 
   // Nếu không tìm thấy token nào
   if (!token) {
-    return res.status(401).json({ message: 'Không được ủy quyền, không có token nào được cung cấp.' });
+    throw new AuthFailureError(
+      "Bạn chưa đăng nhập! Vui lòng đăng nhập để truy cập."
+    );
   }
 
   try {
-    // 3. Xác minh tính hợp lệ của token bằng secret key
+    // Xác minh tính hợp lệ của token bằng secret key
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    // 4. Tìm người dùng dựa trên ID từ token đã giải mã
+    
+    // Tìm người dùng dựa trên ID từ token đã giải mã
     // Bỏ qua trường passwordHash để không trả về mật khẩu
     req.user = await User.findById(decoded.id).select('-passwordHash');
 
@@ -42,25 +43,34 @@ const protect = async (req, res, next) => {
     // Nếu token hợp lệ và người dùng được tìm thấy, chuyển sang middleware hoặc route handler tiếp theo
     next();
   } catch (error) {
-    // Xử lý các lỗi liên quan đến token (hết hạn, không hợp lệ, v.v.)
-    return res.status(401).json({ message: 'Không được ủy quyền, token không hợp lệ hoặc đã hết hạn.' });
+    if (error.name === "TokenExpiredError") {
+      throw new AuthFailureError(
+        "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."
+      );
+    }
+    throw new AuthFailureError(
+      "Token không hợp lệ hoặc phiên đăng nhập bị lỗi."
+    );
   }
 };
 
-
-const authorizeRoles = (allowedRoles) => (req, res, next) => {
-  // Kiểm tra xem thông tin người dùng đã được đính kèm vào req chưa (tức là đã qua verifyToken)
-  if (!req.user || !req.user.role) {
-    return res.status(403).json({ message: 'Không có quyền truy cập, thông tin vai trò người dùng không có sẵn.' });
-  }
-
-  // Kiểm tra xem vai trò của người dùng có nằm trong danh sách các vai trò được phép hay không
-  if (!allowedRoles.includes(req.user.role)) {
-    return res.status(403).json({ message: `Không có quyền truy cập, vai trò của bạn (${req.user.role}) không được phép truy cập tài nguyên này.` });
-  }
-
-  // Nếu người dùng có vai trò được phép, chuyển sang middleware hoặc route handler tiếp theo
-  next();
+/**
+ * Middleware phân quyền (Authorization)
+ * Chỉ cho phép các role được truyền vào danh sách tham số.
+ * Ví dụ: restrictTo('admin', 'team_lead')
+ */
+const restrictTo = (...roles) => {
+  return (req, res, next) => {
+    // req.user đã được gán từ middleware protect chạy trước đó
+    if (!roles.includes(req.user.role)) {
+      throw new ForbiddenError(
+        `Bạn không có quyền thực hiện hành động này. Yêu cầu quyền: ${roles.join(
+          ", "
+        )}`
+      );
+    }
+    next();
+  };
 };
 
-export { protect, authorizeRoles };
+export { protect, restrictTo };

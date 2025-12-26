@@ -1,6 +1,6 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 const DOCUMENT_NAME = "Counter";
-const COLLECTION_NAME = "Counters";
+// const COLLECTION_NAME = "Counters";
 
 /**
  * COUNTER MODEL (Mô hình Bộ đếm)

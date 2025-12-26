@@ -109,6 +109,12 @@ const taskSchema = new mongoose.Schema(
       default: null,
       index: true, // Index hỗ trợ lọc task chưa xóa
     },
+    // Người thực hiện xóa
+    deletedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
   },
   {
     timestamps: true, // Tự động thêm trường `createdAt` và `updatedAt`
