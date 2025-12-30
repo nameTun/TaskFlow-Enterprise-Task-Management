@@ -12,14 +12,17 @@ import { AuthProvider, useAuth } from "./context/Auth/Auth.context";
 import { ThemeProvider, useTheme } from "./context/Theme/Theme.context";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import TasksPage from "./pages/Tasks";
 import UserManagement from "./pages/UserManagement";
 import TaskDetail from "./pages/TaskDetail";
-import Trash from "./pages/Trash.jsx";
+import Trash from "./pages/Trash";
+import Settings from "./pages/Settings";
+import TeamPage from "./pages/Team";
 import LayoutComponent from "./components/Layout";
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
-  const location = useLocation(); // Lấy vị trí hiện tại
+  const location = useLocation();
 
   if (isLoading) {
     return (
@@ -30,13 +33,11 @@ const ProtectedRoute = ({ children }) => {
   }
 
   if (!isAuthenticated) {
-    // Lưu location hiện tại vào state để Login xong có thể redirect lại
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
   return <>{children}</>;
 };
 
-// Component con để kết nối ThemeContext với Antd ConfigProvider
 const AppContent = () => {
   const { darkMode } = useTheme();
 
@@ -52,7 +53,7 @@ const AppContent = () => {
       }}
     >
       <StyleProvider layer>
-        <BrowserRouter>
+     <BrowserRouter>
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route
@@ -62,10 +63,13 @@ const AppContent = () => {
                   <LayoutComponent>
                     <Routes>
                       <Route path="/" element={<Dashboard />} />
-                      <Route path="/tasks" element={<Dashboard />} />
+                      <Route path="/tasks" element={<TasksPage />} />{" "}
+                      {/* Tách Dashboard và Tasks */}
                       <Route path="/tasks/:id" element={<TaskDetail />} />
                       <Route path="/trash" element={<Trash />} />
                       <Route path="/users" element={<UserManagement />} />
+                      <Route path="/team" element={<TeamPage />} />
+                      <Route path="/settings" element={<Settings />} />
                       <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>
                   </LayoutComponent>

@@ -1,34 +1,3 @@
-// // 1. Hàm gốc để gửi phản hồi chuẩn
-// const sendSuccess = (res, { message, data = {}, statusCode = 200 }) => {
-//   return res.status(statusCode).json({
-//     status: "success", // Hoặc 'success' tùy bạn quy ước
-//     message: message,
-//     data: data,
-//   });
-// };
-
-// // 2. Các hàm cụ thể cho từng trường hợp
-// const OK = (res, message, data) => {
-//   return sendSuccess(res, {
-//     message,
-//     data,
-//     statusCode: 200,
-//   });
-// };
-
-// const CREATED = (res, message, data) => {
-//   return sendSuccess(res, {
-//     message,
-//     data,
-//     statusCode: 201,
-//   });
-// };
-
-// export{
-//   OK,
-//   CREATED,
-// };
-
 // Định nghĩa các Status Code và Reason
 const StatusCode = {
   OK: 200,

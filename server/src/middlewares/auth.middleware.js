@@ -1,7 +1,6 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/user.model.js';
 import { AuthFailureError, ForbiddenError } from "../core/error.response.js"
-import asyncHandler from "../helpers/asyncHandler.js"
 
 
 /**

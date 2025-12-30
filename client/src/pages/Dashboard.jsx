@@ -1,287 +1,120 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Card,
   Statistic,
-  Table,
-  Tag,
-  Input,
-  Button,
-  Space,
-  Typography,
   Row,
   Col,
+  Typography,
+  Button,
+  List,
   Avatar,
-  message,
-  Select,
+  Tag,
 } from "antd";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/Auth/Auth.context";
 import {
   Briefcase,
   Clock,
   Users,
   CheckCircle2,
-  Plus,
-  Filter,
+  TrendingUp,
 } from "lucide-react";
-import {
-  TaskStatus,
-  TaskPriority,
-  TaskStatusLabels,
-  TaskPriorityLabels,
-} from "../constants/constant";
-import CreateTaskModal from "../components/CreateTaskModal";
 import taskService from "../services/task.service";
+import { TaskStatus } from "../constants/constant";
 import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime"; // Import plugin
+
+// Kích hoạt plugin relativeTime
+dayjs.extend(relativeTime);
 
 const { Title } = Typography;
-const { Option } = Select;
 
 const Dashboard = () => {
-  const navigate = useNavigate();
   const { user } = useAuth();
-
-  // State quản lý Modal
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-
-  // State quản lý dữ liệu Task
-  const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [pagination, setPagination] = useState({
-    current: 1,
-    pageSize: 10,
+  const [stats, setStats] = useState({
     total: 0,
+    todo: 0,
+    in_progress: 0,
+    done: 0,
   });
+  const [recentTasks, setRecentTasks] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  // State bộ lọc
-  const [filters, setFilters] = useState({
-    search: "",
-    status: undefined,
-    priority: undefined,
-  });
-
-  // Hàm gọi API lấy danh sách Task
-  const fetchTasks = useCallback(
-    async (page = 1, pageSize = 10, currentFilters = filters) => {
+  useEffect(() => {
+    const fetchData = async () => {
       setLoading(true);
       try {
-        // Clean params: loại bỏ các giá trị undefined/null/rỗng
-        const params = {
-          page,
-          limit: pageSize,
-          search: currentFilters.search,
-          status:
-            currentFilters.status === "all" ? undefined : currentFilters.status,
-          priority:
-            currentFilters.priority === "all"
-              ? undefined
-              : currentFilters.priority,
-        };
-
-        const response = await taskService.getTasks(params);
-
-        // Response structure: { message, metadata: { tasks, pagination } }
-        if (response && response.metadata) {
-          setTasks(response.metadata.tasks);
-          setPagination({
-            current: response.metadata.pagination.page,
-            pageSize: response.metadata.pagination.limit,
-            total: response.metadata.pagination.total,
+        // Gọi API lấy tasks (với limit nhỏ để lấy stats hoặc API stats riêng nếu có)
+        // Ở đây tái sử dụng API getTasks và tính toán client-side tạm thời
+        const res = await taskService.getTasks({ limit: 100 });
+        if (res && res.metadata) {
+          const tasks = res.metadata.tasks;
+          setStats({
+            total: res.metadata.pagination.total,
+            todo: tasks.filter((t) => t.status === TaskStatus.TODO).length,
+            in_progress: tasks.filter(
+              (t) => t.status === TaskStatus.IN_PROGRESS
+            ).length,
+            done: tasks.filter((t) => t.status === TaskStatus.DONE).length,
           });
+          setRecentTasks(tasks.slice(0, 5));
         }
       } catch (error) {
-        console.error("Fetch tasks error:", error);
-        message.error("Không thể tải danh sách công việc");
+        console.error(error);
       } finally {
         setLoading(false);
       }
-    },
-    []
-  ); // filters được truyền vào function arg nên không cần dependency ở đây để tránh loop
-  // const isCheckedRef = React.useRef(false);
+    };
+    fetchData();
+  }, []);
 
-  // Gọi API khi component mount hoặc khi filter thay đổi (trừ search text handle riêng)
-  useEffect(() => {
-    // if (isCheckedRef.current) {
-    //   return;
-    // }
-    // isCheckedRef.current = true;
-
-    fetchTasks(1, pagination.pageSize, filters);
-  }, [fetchTasks, filters.status, filters.priority]);
-
-  // Handle Table Change (Phân trang)
-  const handleTableChange = (newPagination) => {
-    fetchTasks(newPagination.current, newPagination.pageSize, filters);
-  };
-
-  // Handle Search Text (Debounce hoặc Enter)
-  const handleSearch = (value) => {
-    const newFilters = { ...filters, search: value };
-    setFilters(newFilters);
-    fetchTasks(1, pagination.pageSize, newFilters);
-  };
-
-  const handleFilterChange = (key, value) => {
-    const newFilters = { ...filters, [key]: value };
-    setFilters(newFilters);
-    // useEffect sẽ tự trigger fetchTasks vì dependency [filters.status, filters.priority]
-  };
-
-  const handleTaskCreated = () => {
-    setIsCreateModalOpen(false);
-    fetchTasks(1, pagination.pageSize, filters);
-  };
-
-  // Mock Stats (Bạn có thể tạo API riêng cho thống kê sau)
-  const stats = [
+  const statCards = [
     {
       title: "Total Tasks",
-      value: pagination.total,
+      value: stats.total,
       prefix: <Briefcase size={20} />,
       color: "#1677ff",
       bg: "rgba(22, 119, 255, 0.1)",
     },
     {
       title: "Pending",
-      value: tasks.filter((t) => t.status === TaskStatus.TODO).length,
+      value: stats.todo,
       prefix: <Clock size={20} />,
       color: "#faad14",
       bg: "rgba(250, 173, 20, 0.1)",
     },
     {
-      title: "Processing",
-      value: tasks.filter((t) => t.status === TaskStatus.IN_PROGRESS).length,
-      prefix: <Users size={20} />,
+      title: "In Progress",
+      value: stats.in_progress,
+      prefix: <TrendingUp size={20} />,
       color: "#52c41a",
       bg: "rgba(82, 196, 26, 0.1)",
     },
     {
-      title: "Done",
-      value: tasks.filter((t) => t.status === TaskStatus.DONE).length,
+      title: "Completed",
+      value: stats.done,
       prefix: <CheckCircle2 size={20} />,
       color: "#722ed1",
       bg: "rgba(114, 46, 209, 0.1)",
     },
   ];
 
-  const columns = [
-    {
-      title: "Task Info",
-      dataIndex: "title",
-      key: "title",
-      fixed: "left",
-      width: 250,
-      render: (text, record) => (
-        <div>
-          <div className="font-medium truncate text-blue-600 hover:underline">
-            {text}
-          </div>
-          <div className="text-xs text-gray-400">{record.id}</div>
-        </div>
-      ),
-    },
-    {
-      title: "Assignee",
-      dataIndex: "assignedTo",
-      key: "assignedTo",
-      width: 150,
-      render: (assignedTo) =>
-        assignedTo ? (
-          <Space>
-            <Avatar size="small" src={assignedTo.avatar}>
-              {assignedTo.name?.[0]}
-            </Avatar>
-            <span className="text-sm">{assignedTo.name}</span>
-          </Space>
-        ) : (
-          <span className="text-gray-400 italic">Unassigned</span>
-        ),
-    },
-    {
-      title: "Due Date",
-      dataIndex: "dueDate",
-      key: "dueDate",
-      width: 120,
-      render: (date) => (date ? dayjs(date).format("DD/MM/YYYY") : "-"),
-    },
-    {
-      title: "Priority",
-      dataIndex: "priority",
-      key: "priority",
-      width: 100,
-      render: (priority) => {
-        let color = "default";
-        if (priority === TaskPriority.HIGH) color = "red";
-        if (priority === TaskPriority.MEDIUM) color = "orange";
-        if (priority === TaskPriority.URGENT) color = "magenta";
-        return (
-          <Tag color={color}>{TaskPriorityLabels[priority] || priority}</Tag>
-        );
-      },
-    },
-    {
-      title: "Status",
-      dataIndex: "status",
-      key: "status",
-      width: 120,
-      render: (status) => {
-        let color = "default";
-        if (status === TaskStatus.DONE) color = "green";
-        if (status === TaskStatus.IN_PROGRESS) color = "blue";
-        if (status === TaskStatus.REVIEW) color = "purple";
-        return <Tag color={color}>{TaskStatusLabels[status] || status}</Tag>;
-      },
-    },
-    {
-      title: "Action",
-      key: "action",
-      width: 80,
-      fixed: "right",
-      render: (_, record) => (
-        <Space size="middle">
-          <Button
-            type="link"
-            size="small"
-            onClick={() => navigate(`/tasks/${record.id}`)}
-          >
-            View
-          </Button>
-        </Space>
-      ),
-    },
-  ];
-
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <Title level={2} style={{ margin: 0 }}>
-            Dashboard
-          </Title>
-          <span className="text-gray-500">
-            Welcome back,{" "}
-            <strong>{user?.name || user?.fullName || "User"}</strong>! Here is
-            your workspace activity.
-          </span>
-        </div>
-        <Button
-          type="primary"
-          icon={<Plus size={16} />}
-          size="large"
-          className="w-full md:w-auto"
-          onClick={() => setIsCreateModalOpen(true)}
-        >
-          New Task
-        </Button>
+      <div>
+        <Title level={2} style={{ margin: 0 }}>
+          Executive Dashboard
+        </Title>
+        <span className="text-gray-500">
+          Overview of performance and recent activities.
+        </span>
       </div>
 
       <Row gutter={[16, 16]}>
-        {stats.map((stat, idx) => (
+        {statCards.map((stat, idx) => (
           <Col xs={24} sm={12} lg={6} key={idx}>
             <Card
               bordered={false}
-              className="shadow-sm hover:shadow-md transition-shadow h-full"
+              className="shadow-sm hover:shadow-md transition-shadow"
             >
               <Statistic
                 title={
@@ -290,6 +123,7 @@ const Dashboard = () => {
                   </span>
                 }
                 value={stat.value}
+                loading={loading}
                 prefix={
                   <div
                     style={{ color: stat.color, backgroundColor: stat.bg }}
@@ -305,68 +139,50 @@ const Dashboard = () => {
         ))}
       </Row>
 
-      <Card title="Tasks Management" bordered={false} className="shadow-sm">
-        <div className="flex flex-col md:flex-row gap-4 mb-4 justify-between">
-          <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
-            <Input.Search
-              placeholder="Search tasks..."
-              onSearch={handleSearch}
-              allowClear
-              className="w-full md:w-[250px]"
-              prefix={<Filter size={14} className="text-gray-400 mr-1" />}
+      <Row gutter={[16, 16]}>
+        <Col xs={24} lg={16}>
+          <Card
+            title="Recent Activity"
+            bordered={false}
+            className="shadow-sm h-full"
+          >
+            <List
+              loading={loading}
+              itemLayout="horizontal"
+              dataSource={recentTasks}
+              renderItem={(item) => (
+                <List.Item>
+                  <List.Item.Meta
+                    avatar={
+                      <Avatar style={{ backgroundColor: "#1677ff" }}>
+                        {item.title[0]}
+                      </Avatar>
+                    }
+                    title={<a href={`#/tasks/${item.id}`}>{item.title}</a>}
+                    description={`Created by ${
+                      item.createdBy?.name || "Unknown"
+                    } - ${dayjs(item.createdAt).fromNow()}`}
+                  />
+                  <Tag color={item.status === "done" ? "green" : "blue"}>
+                    {item.status}
+                  </Tag>
+                </List.Item>
+              )}
             />
-
-            <Select
-              placeholder="Filter by Status"
-              style={{ width: 180 }}
-              allowClear
-              onChange={(val) => handleFilterChange("status", val)}
-            >
-              <Option value="all">All Status</Option>
-              {Object.values(TaskStatus).map((s) => (
-                <Option key={s} value={s}>
-                  {TaskStatusLabels[s]}
-                </Option>
-              ))}
-            </Select>
-
-            <Select
-              placeholder="Filter by Priority"
-              style={{ width: 180 }}
-              allowClear
-              onChange={(val) => handleFilterChange("priority", val)}
-            >
-              <Option value="all">All Priority</Option>
-              {Object.values(TaskPriority).map((p) => (
-                <Option key={p} value={p}>
-                  {TaskPriorityLabels[p]}
-                </Option>
-              ))}
-            </Select>
-          </div>
-        </div>
-
-        <Table
-          rowKey="id"
-          columns={columns}
-          dataSource={tasks}
-          loading={loading}
-          pagination={pagination}
-          onChange={handleTableChange}
-          scroll={{ x: 800 }}
-          onRow={(record) => ({
-            onClick: () => navigate(`/tasks/${record.id}`),
-            style: { cursor: "pointer" },
-          })}
-        />
-      </Card>
-
-      {/* Modal Tạo Task */}
-      <CreateTaskModal
-        open={isCreateModalOpen}
-        onCancel={() => setIsCreateModalOpen(false)}
-        onSuccess={handleTaskCreated}
-      />
+          </Card>
+        </Col>
+        <Col xs={24} lg={8}>
+          <Card
+            title="Team Performance"
+            bordered={false}
+            className="shadow-sm h-full"
+          >
+            <div className="flex items-center justify-center h-40 text-gray-400">
+              Chart Placeholder
+            </div>
+          </Card>
+        </Col>
+      </Row>
     </div>
   );
 };

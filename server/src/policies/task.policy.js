@@ -14,12 +14,11 @@ class TaskPolicy {
    */
   static getReadFilter(user) {
     // 1. ADMIN: GOD MODE - Xem tất cả
-    // Trả về object rỗng {} để MongoDB không filter gì cả (trừ deletedAt: null đã có ở Controller)
     if (user.role === 'admin') {
       return {}; 
     }
 
-    // 2. TEAM LEAD: Task cá nhân + Task Team do mình quản lý
+    // 2. TEAM LEAD: Xem hết task của Team mình + Task cá nhân
     if (user.role === 'team_lead') {
       const conditions = [
         { createdBy: user._id },
@@ -33,46 +32,56 @@ class TaskPolicy {
       return { $or: conditions };
     }
 
-    // 3. USER: Task cá nhân + Task được assign + Task được share
-    return {
-      $or: [
+    // 3. USER (Member): 
+    // - Task mình tạo
+    // - Task được giao
+    // - Task được share trực tiếp
+    // - Task thuộc Team mình VÀ có visibility là 'team' hoặc 'public'
+    const conditions = [
         { createdBy: user._id },
         { assignedTo: user._id },
-        { sharedWith: user._id },
-        // Mở rộng: Nếu User thuộc Team và task đó set visibility='team' (Giai đoạn 3)
-        // { teamId: user.teamId, visibility: 'team' } 
-      ]
-    };
+        { sharedWith: user._id }
+    ];
+
+    if (user.teamId) {
+        conditions.push({ 
+            teamId: user.teamId, 
+            visibility: { $in: ['team', 'public'] } 
+        });
+    }
+
+    return { $or: conditions };
   }
 
   /**
    * Kiểm tra quyền xem chi tiết 1 Task
    */
   static canView(user, task) {
-    // Admin xem được tất cả
     if (user.role === 'admin') return true;
 
-    // Logic cho User/Lead
-    // Lưu ý: Cần convert ObjectId sang String để so sánh chính xác
     const userIdStr = user._id.toString();
     const createdByStr = task.createdBy._id ? task.createdBy._id.toString() : task.createdBy.toString();
     const assignedToStr = task.assignedTo ? (task.assignedTo._id ? task.assignedTo._id.toString() : task.assignedTo.toString()) : null;
 
-    const isOwner = createdByStr === userIdStr;
-    const isAssignee = assignedToStr === userIdStr;
-    const isTeamTask = !!task.teamId;
-
     // Chủ sở hữu hoặc Người được giao luôn xem được
-    if (isOwner || isAssignee) return true;
+    if (createdByStr === userIdStr || assignedToStr === userIdStr) return true;
     
-    // Nếu là Team Lead và task thuộc team mình quản lý
-    if (user.role === 'team_lead' && isTeamTask && user.teamId) {
-        if (user.teamId.toString() === task.teamId.toString()) return true;
-    }
+    // Check Shared With (Mảng ID)
+    if (task.sharedWith && task.sharedWith.some(id => id.toString() === userIdStr)) return true;
 
-    // Nếu là thành viên team và task visibility là 'team' hoặc 'public' (Logic mở rộng)
-    if (isTeamTask && user.teamId && user.teamId.toString() === task.teamId.toString()) {
-         return true; // Tạm thời cho phép member xem task trong team
+    const isTeamTask = !!task.teamId;
+    
+    // Nếu User thuộc Team và Task thuộc Team
+    if (isTeamTask && user.teamId && task.teamId) {
+        const userTeamIdStr = user.teamId.toString();
+        const taskTeamIdStr = task.teamId.toString();
+
+        if (userTeamIdStr === taskTeamIdStr) {
+             // Team Lead xem được hết
+             if (user.role === 'team_lead') return true;
+             // Member xem được nếu visibility là team/public
+             if (['team', 'public'].includes(task.visibility)) return true;
+        }
     }
 
     return false;
@@ -82,18 +91,14 @@ class TaskPolicy {
    * Kiểm tra quyền cập nhật
    */
   static canUpdate(user, task) {
-    // Admin sửa được tất cả
     if (user.role === 'admin') return true;
 
     const userIdStr = user._id.toString();
     const createdByStr = task.createdBy._id ? task.createdBy._id.toString() : task.createdBy.toString();
     const assignedToStr = task.assignedTo ? (task.assignedTo._id ? task.assignedTo._id.toString() : task.assignedTo.toString()) : null;
 
-    const isOwner = createdByStr === userIdStr;
-    const isAssignee = assignedToStr === userIdStr;
-
     // Chủ task, Người được giao được sửa
-    if (isOwner || isAssignee) return true;
+    if (createdByStr === userIdStr || assignedToStr === userIdStr) return true;
 
     // Team Lead được sửa task trong team mình
     if (user.role === 'team_lead' && task.teamId && user.teamId) {
@@ -107,19 +112,17 @@ class TaskPolicy {
    * Kiểm tra quyền xóa
    */
   static canDelete(user, task) {
-    // Admin xóa được tất cả
     if (user.role === 'admin') return true;
 
     const userIdStr = user._id.toString();
     const createdByStr = task.createdBy._id ? task.createdBy._id.toString() : task.createdBy.toString();
-    const isOwner = createdByStr === userIdStr;
     const isTeamTask = !!task.teamId;
 
     // 1. Task cá nhân (Không thuộc team): Chỉ chủ nhân xóa
-    if (!isTeamTask) return isOwner;
+    if (!isTeamTask) return createdByStr === userIdStr;
 
-    // 2. Task Team: Lead (của team đó), Owner xóa
-    if (isOwner) return true;
+    // 2. Task Team: Lead (của team đó) hoặc Owner xóa
+    if (createdByStr === userIdStr) return true;
     
     if (user.role === 'team_lead' && user.teamId && task.teamId) {
         if (user.teamId.toString() === task.teamId.toString()) return true;

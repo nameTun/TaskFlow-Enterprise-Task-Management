@@ -28,29 +28,16 @@ const createTaskController = asyncHandler(async (req, res) => {
 const getAllTasksController = asyncHandler(async (req, res) => {
   // Policy: Lấy filter quyền xem
   const authFilter = TaskPolicy.getReadFilter(req.user);
-
-  console.log("response trả về từ TaskPolicy",req.user);
-  
-  console.log("authFilter",authFilter);
-  
   // Combine với filter từ Client
   const dataFilter = { deletedAt: null, ...authFilter };
-  console.log("dataFilter", dataFilter);
+
   // Dùng nếu người dùng lọc filter
   if (req.query.status) dataFilter.status = req.query.status;
   if (req.query.priority) dataFilter.priority = req.query.priority;
   if (req.query.search) dataFilter.$text = { $search: req.query.search };
-  console.log("----------------------------------------");
-  console.log("---dataFilter.status", dataFilter.status);
-  console.log("---dataFilter.priority", dataFilter.priority);
-  console.log("---dataFilter.$text", dataFilter.$text);
-  console.log("---req.query", req.query);
-  
-  console.log("----------------------------------------");
-  
+
   const result = await getAllTasks(dataFilter, req.query);
-  console.log("---result:",result);
-  
+
   const tasksDto = result.tasks.map((task) => new TaskDto(task));
 
   new OK({

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Modal,
   Form,
@@ -9,6 +9,8 @@ import {
   message,
   Row,
   Col,
+  Avatar,
+  Radio,
 } from "antd";
 import {
   TaskStatus,
@@ -17,7 +19,9 @@ import {
   TaskPriorityLabels,
 } from "../constants/constant";
 import taskService from "../services/task.service";
+import teamService from "../services/team.service";
 import dayjs from "dayjs";
+import { Users, Lock } from "lucide-react";
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -25,19 +29,47 @@ const { TextArea } = Input;
 const CreateTaskModal = ({ open, onCancel, onSuccess }) => {
   const [form] = Form.useForm();
   const [isLoading, setIsLoading] = useState(false);
+  const [teamMembers, setTeamMembers] = useState([]);
+  const [hasTeam, setHasTeam] = useState(false);
+
+  // Load team members khi modal mở
+  useEffect(() => {
+    if (open) {
+      const fetchMembers = async () => {
+        try {
+          const res = await teamService.getMyTeam();
+          if (res && res.metadata) {
+            setHasTeam(true);
+            // Default visibility thành 'team' nếu user có team
+            form.setFieldValue("visibility", "team");
+
+            if (res.metadata.members) {
+              setTeamMembers(res.metadata.members);
+            }
+          } else {
+            setHasTeam(false);
+            form.setFieldValue("visibility", "private");
+          }
+        } catch (error) {
+          setHasTeam(false);
+        }
+      };
+      fetchMembers();
+    }
+  }, [open, form]);
 
   const handleFinish = async (values) => {
     setIsLoading(true);
     try {
-      // Chuẩn bị dữ liệu gửi lên Server
       const payload = {
         title: values.title,
         description: values.description,
         priority: values.priority,
         status: values.status,
-        // Antd DatePicker trả về Dayjs object, cần format sang ISO string
         dueDate: values.dueDate ? values.dueDate.toISOString() : null,
         startDate: values.startDate ? values.startDate.toISOString() : null,
+        assignedTo: values.assignedTo,
+        visibility: values.visibility, // Gửi visibility lên server
       };
 
       await taskService.createTask(payload);
@@ -73,6 +105,7 @@ const CreateTaskModal = ({ open, onCancel, onSuccess }) => {
           priority: TaskPriority.MEDIUM,
           status: TaskStatus.TODO,
           startDate: dayjs(),
+          visibility: "private", // Default fallback
         }}
         className="mt-4"
       >
@@ -96,22 +129,36 @@ const CreateTaskModal = ({ open, onCancel, onSuccess }) => {
 
         <Row gutter={16}>
           <Col span={12}>
+            <Form.Item name="assignedTo" label="Giao cho (Trong Team)">
+              <Select
+                placeholder="Chọn thành viên"
+                allowClear
+                disabled={!hasTeam}
+              >
+                {teamMembers.map((member) => (
+                  <Option key={member.userId} value={member.userId}>
+                    <div className="flex items-center gap-2">
+                      <Avatar size="small" src={member.avatar}>
+                        {member.name?.[0]}
+                      </Avatar>
+                      <span>{member.name}</span>
+                    </div>
+                  </Option>
+                ))}
+              </Select>
+              {!hasTeam && (
+                <div className="text-xs text-gray-400 mt-1">
+                  Bạn cần gia nhập Team để giao việc.
+                </div>
+              )}
+            </Form.Item>
+          </Col>
+          <Col span={12}>
             <Form.Item name="priority" label="Mức độ ưu tiên">
               <Select>
                 {Object.values(TaskPriority).map((p) => (
                   <Option key={p} value={p}>
                     {TaskPriorityLabels[p]}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-          </Col>
-          <Col span={12}>
-            <Form.Item name="status" label="Trạng thái ban đầu">
-              <Select>
-                {Object.values(TaskStatus).map((s) => (
-                  <Option key={s} value={s}>
-                    {TaskStatusLabels[s]}
                   </Option>
                 ))}
               </Select>
@@ -153,6 +200,36 @@ const CreateTaskModal = ({ open, onCancel, onSuccess }) => {
                 format="DD/MM/YYYY"
                 showTime={{ format: "HH:mm" }}
               />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item name="status" label="Trạng thái ban đầu">
+              <Select>
+                {Object.values(TaskStatus).map((s) => (
+                  <Option key={s} value={s}>
+                    {TaskStatusLabels[s]}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item name="visibility" label="Quyền riêng tư">
+              <Radio.Group buttonStyle="solid">
+                <Radio.Button value="private">
+                  <Space size="small">
+                    <Lock size={14} /> Riêng tư
+                  </Space>
+                </Radio.Button>
+                <Radio.Button value="team" disabled={!hasTeam}>
+                  <Space size="small">
+                    <Users size={14} /> Team
+                  </Space>
+                </Radio.Button>
+              </Radio.Group>
             </Form.Item>
           </Col>
         </Row>
