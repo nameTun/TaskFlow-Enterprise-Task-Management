@@ -3,6 +3,8 @@ import { Layout, Drawer, theme } from "antd";
 import Sidebar from "./Sidebar";
 import HeaderComponent from "./Header";
 import { useTheme } from "../context/Theme/Theme.context";
+import ChatWidget from "./AIChat/ChatWidget";
+
 
 const { Content, Sider } = Layout;
 
@@ -78,6 +80,8 @@ const LayoutComponent = ({ children }) => {
           {children}
         </Content>
       </Layout>
+      {/* Tích hợp AI Chat Widget vào toàn bộ ứng dụng */}
+      <ChatWidget />
     </Layout>
   );
 };

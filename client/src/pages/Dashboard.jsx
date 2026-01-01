@@ -21,7 +21,7 @@ import {
 import taskService from "../services/task.service";
 import { TaskStatus } from "../constants/constant";
 import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime"; // Import plugin
+import relativeTime from "dayjs/plugin/relativeTime";
 
 // Kích hoạt plugin relativeTime
 dayjs.extend(relativeTime);

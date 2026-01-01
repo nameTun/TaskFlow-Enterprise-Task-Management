@@ -20,7 +20,7 @@ const seedAdmin = async () => {
     // Thông tin Admin mặc định
     const adminData = {
       name: "Super Admin",
-      email: "admin@gmail.com",
+      email: "admin@taskflow.com",
       passwordHash: "Admin@123456", // Password mặc định (sẽ được hash bởi hook pre-save của Model)
       role: "admin",
       isVerified: true,
