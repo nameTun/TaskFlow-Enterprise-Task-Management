@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useEffect, useRef} from "react";
-// Lưu ý: Cập nhật đường dẫn import do thay đổi cấu trúc thư mục (thêm 1 cấp folder)
 import api from "../../services/api";
 import { useAuthStore } from "../../stores/useAuthStore";
 

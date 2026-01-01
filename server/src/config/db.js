@@ -1,7 +1,5 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-
-// Tải các biến môi trường từ tệp .env
 dotenv.config();
 
 /**

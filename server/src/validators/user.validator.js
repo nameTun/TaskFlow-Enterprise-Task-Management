@@ -1,65 +1,65 @@
-import Joi from 'joi';
-import { BadRequestError } from '../core/error.response.js';
-import RegisterUserDto from '../dtos/register-user.dto.js';
-import LoginUserDto from '../dtos/login-user.dto.js';
+import Joi from "joi";
+import { BadRequestError } from "../core/error.response.js";
+import RegisterUserDto from "../dtos/register-user.dto.js";
+import LoginUserDto from "../dtos/login-user.dto.js";
 
-// Schema for user registration
+// Schema cho việc đăng ký người dùng
 const registerSchema = Joi.object({
   name: Joi.string().min(3).max(50).required().messages({
-    'string.base': 'Name must be a text string',
-    'string.empty': 'Name is not allowed to be empty',
-    'string.min': 'Name must have at least {#limit} characters',
-    'string.max': 'Name cannot exceed {#limit} characters',
-    'any.required': 'Name is a required field',
+    "string.base": "Tên phải là một chuỗi ký tự",
+    "string.empty": "Tên không được để trống",
+    "string.min": "Tên phải có ít nhất {#limit} ký tự",
+    "string.max": "Tên không được vượt quá {#limit} ký tự",
+    "any.required": "Tên là trường bắt buộc",
   }),
   email: Joi.string().email().required().messages({
-    'string.email': 'Email must be a valid email address',
-    'any.required': 'Email is a required field',
+    "string.email": "Email phải là một địa chỉ hợp lệ",
+    "any.required": "Email là trường bắt buộc",
   }),
   password: Joi.string()
     .min(8)
-    .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])'))
+    .pattern(new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])"))
     .required()
     .messages({
-      'string.pattern.base':
-        'Password must contain at least one uppercase letter, one lowercase letter, and one number',
-      'string.min': 'Password must be at least 8 characters long',
-      'any.required': 'Password is a required field',
+      "string.pattern.base":
+        "Mật khẩu phải chứa ít nhất một chữ hoa, một chữ thường và một số",
+      "string.min": "Mật khẩu phải có ít nhất {#limit} ký tự",
+      "any.required": "Mật khẩu là trường bắt buộc",
     }),
 });
 
-// Schema for user login
+// Schema cho việc đăng nhập người dùng
 const loginSchema = Joi.object({
   email: Joi.string().email().required().messages({
-    'string.email': 'Email must be a valid email address',
-    'any.required': 'Email is a required field',
+    "string.email": "Email phải là một địa chỉ hợp lệ",
+    "any.required": "Email là trường bắt buộc",
   }),
   password: Joi.string().required().messages({
-    'any.required': 'Password is a required field',
+    "any.required": "Mật khẩu là trường bắt buộc",
   }),
 });
 
 /**
- * @desc Middleware to validate the request body against a Joi schema and create a DTO.
- * @param {Joi.Schema} schema The Joi schema to validate against.
- * @param {class} DtoClass The DTO class to instantiate.
- * @returns {function} Express middleware.
+ * @desc Middleware để kiểm tra dữ liệu request body với Joi schema và tạo DTO.
+ * @param {Joi.Schema} schema Joi schema để kiểm tra dữ liệu.
+ * @param {class} DtoClass Lớp DTO để khởi tạo.
+ * @returns {function} Middleware của Express.
  */
 const validateAndCreateDto = (schema, DtoClass) => (req, res, next) => {
   const { error, value } = schema.validate(req.body);
   if (error) {
-    // If validation fails, throw a BadRequestError.
-    // The error handling middleware will catch this and send the response.
+    // Nếu kiểm tra thất bại, ném BadRequestError.
+    // Middleware xử lý lỗi sẽ bắt và trả về phản hồi.
     throw new BadRequestError(error.details[0].message);
   }
-  // If validation is successful, create a new DTO and attach it to the request.
+  // Nếu kiểm tra thành công, tạo DTO mới và gắn vào request.
   req.dto = new DtoClass(value);
   next();
 };
-// Export ready-to-use validation middlewares
+
+// Xuất các middleware kiểm tra sẵn sàng sử dụng
 export const validateRegister = validateAndCreateDto(
   registerSchema,
   RegisterUserDto
 );
 export const validateLogin = validateAndCreateDto(loginSchema, LoginUserDto);
-

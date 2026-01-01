@@ -44,27 +44,36 @@ const createTask = async (userId, taskDto) => {
 };
 
 /**
- * Lấy danh sách task
+ * Lấy danh sách task (Hỗ trợ Search Text)
  */
 const getAllTasks = async (filter, queryOptions) => {
-  const { page = 1, limit = 10, sort = 'newest' } = queryOptions;
+  const { page = 1, limit = 10, sort = "newest", search } = queryOptions;
   const skip = (page - 1) * limit;
 
-  // Xử lý Sort
-  let sortCondition = { createdAt: -1 }; 
-  if (sort === 'oldest') sortCondition = { createdAt: 1 };
-  if (sort === 'priority_desc') sortCondition = { priority: -1 };
-  if (sort === 'deadline_soon') sortCondition = { dueDate: 1 }; // Sắp xếp theo deadline gần nhất
-  
+  // Nếu có từ khóa search -> Thêm điều kiện $text vào filter
+  if (search && search.trim() !== "") {
+    filter.$text = { $search: search };
+  }
+
+  let sortCondition = { createdAt: -1 };
+  if (sort === "oldest") sortCondition = { createdAt: 1 };
+  if (sort === "priority_desc") sortCondition = { priority: -1 };
+  if (sort === "deadline_soon") sortCondition = { dueDate: 1 };
+
+  // Nếu đang search text, MongoDB khuyến nghị sort theo score độ khớp
+  if (filter.$text) {
+    sortCondition = { score: { $meta: "textScore" } };
+  }
+
   const [tasks, totalCount] = await Promise.all([
     Task.find(filter)
       .skip(skip)
       .limit(limit)
       .sort(sortCondition)
-      .populate('assignedTo', 'name email avatar')
-      .populate('createdBy', 'name email avatar')
+      .populate("assignedTo", "name email avatar")
+      .populate("createdBy", "name email avatar")
       .lean(),
-    Task.countDocuments(filter)
+    Task.countDocuments(filter),
   ]);
 
   return {
@@ -73,11 +82,10 @@ const getAllTasks = async (filter, queryOptions) => {
       page: parseInt(page),
       limit: parseInt(limit),
       total: totalCount,
-      totalPages: Math.ceil(totalCount / limit)
-    }
+      totalPages: Math.ceil(totalCount / limit),
+    },
   };
 };
-
 /**
  * Lấy danh sách task đã xóa
  */

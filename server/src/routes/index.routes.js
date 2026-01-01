@@ -4,6 +4,7 @@ import authRoutes from "./auth.routes.js";
 import taskRoutes from "./task.routes.js";
 import teamRoutes from "./team.routes.js";
 import userRoutes from "./user.routes.js";
+import aiRoutes from "./ai.routes.js";
 import notificationRoutes from "./notification.routes.js";
 import { protect } from "../middlewares/auth.middleware.js";
 
@@ -23,4 +24,8 @@ router.use('/teams', teamRoutes);
 router.use("/users", userRoutes);
 
 router.use("/notifications", notificationRoutes);
+
+// AI Routes
+router.use("/ai", aiRoutes); 
+
 export default router;

@@ -1,18 +1,17 @@
-import asyncHandler from '../helpers/asyncHandler.js';
+import asyncHandler from "../helpers/asyncHandler.js";
 import {
   registerUser,
   loginUser,
   logoutUser,
   refreshUserToken,
-  // handleGoogleAuth,
-} from '../services/auth.service.js';
-import { CREATED, OK } from '../core/success.response.js';
-import { setRefreshTokenCookie } from '../utils/token.utils.js';
-import UserDto from '../dtos/user.dto.js';
+} from "../services/auth.service.js";
+import { CREATED, OK } from "../core/success.response.js";
+import { setRefreshTokenCookie } from "../utils/token.utils.js";
+import UserDto from "../dtos/user.dto.js";
 
 // Đăng ký
-export const register = asyncHandler(async (req, res) => {
-  // req.body đã được validate và clean bởi validateRegister middleware
+const register = asyncHandler(async (req, res) => {
+
   const { user, accessToken, refreshToken } = await registerUser(req.dto);
 
   setRefreshTokenCookie(res, refreshToken);
@@ -25,8 +24,9 @@ export const register = asyncHandler(async (req, res) => {
     },
   }).send(res);
 });
+
 // Đăng nhập
-export const login = asyncHandler(async (req, res) => {
+const login = asyncHandler(async (req, res) => {
   const { user, accessToken, refreshToken } = await loginUser(req.dto);
 
   setRefreshTokenCookie(res, refreshToken);
@@ -41,7 +41,7 @@ export const login = asyncHandler(async (req, res) => {
 });
 
 // Đăng nhập bằng Google
-export const loginGoogle = asyncHandler(async (req, res) => {
+const loginGoogle = asyncHandler(async (req, res) => {
   // Lấy credential (ID Token) từ Body do Client gửi lên
   const { credential } = req.body;
 
@@ -62,21 +62,21 @@ export const loginGoogle = asyncHandler(async (req, res) => {
   }).send(res);
 });
 
-export const logout = asyncHandler(async (req, res) => {
+const logout = asyncHandler(async (req, res) => {
   const refreshToken = req.cookies.refreshToken;
   await logoutUser(refreshToken);
   res.clearCookie("refreshToken", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
-    path: "/" ,
+    path: "/",
     // path: "/api/auth/refresh-token" // Quan trọng: Path phải khớp với lúc set cookie
   });
   new OK({ message: "Đăng xuất thành công" }).send(res);
 });
 
 // Refresh Token
-export const refreshAccessToken = asyncHandler(async (req, res) => {
+const refreshAccessToken = asyncHandler(async (req, res) => {
   const incomingRefreshToken = req.cookies.refreshToken;
 
   const {
@@ -97,20 +97,12 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
   }).send(res);
 });
 
-// export const googleAuthCallback = asyncHandler(async (req, res) => {
-//   const { user, accessToken, refreshToken } = await handleGoogleAuth(req.user);
-//   setRefreshTokenCookie(res, refreshToken);
-//   // Redirecting the user. The client will not receive the accessToken directly here.
-//   // The client is expected to have logic to fetch the user/token after redirection,
-//   // possibly by using the refresh token that was just set.
-//   res.redirect(process.env.CLIENT_URL);
-// });
 
 // Get Me
-export const getMe = asyncHandler(async (req, res) => {
-  
+const getMe = asyncHandler(async (req, res) => {
   new OK({
     message: "Lấy thông tin thành công",
     metadata: new UserDto(req.user),
   }).send(res);
 });
+export { register, login, logout, refreshAccessToken, loginGoogle, getMe };

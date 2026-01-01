@@ -40,7 +40,7 @@ const Sidebar = ({ collapsed, isMobile, closeDrawer }) => {
       key: "/team",
       icon: <Briefcase size={20} />,
       label: "My Team",
-      // UPDATE: Cho phép Admin thấy menu này để dễ dàng test chức năng Team
+      //Cho phép Admin thấy menu này để dễ dàng test chức năng Team
       hidden: false,
     },
     {

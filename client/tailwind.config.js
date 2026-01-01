@@ -1,8 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   darkMode: "class",
-  // important: '#root', // Bật dòng này nếu bạn muốn Tailwind "vô đối" (luôn thắng Antd), nhưng dùng Layer ở trên là cách sạch hơn.
-  // content: ["./index.html", "./**/*.{js,ts,jsx,tsx}"],
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
