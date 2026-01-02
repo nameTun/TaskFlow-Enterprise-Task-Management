@@ -7,7 +7,6 @@ import {
   LayoutDashboard,
   Users,
   CheckSquare,
-  BarChart3,
   Settings,
   LogOut,
   Trash2,
@@ -40,14 +39,9 @@ const Sidebar = ({ collapsed, isMobile, closeDrawer }) => {
       key: "/team",
       icon: <Briefcase size={20} />,
       label: "My Team",
-      //Cho phép Admin thấy menu này để dễ dàng test chức năng Team
       hidden: false,
     },
-    {
-      key: "/reports",
-      icon: <BarChart3 size={20} />,
-      label: "Reports",
-    },
+    // Đã xóa menu Reports vì dư thừa
     {
       key: "/trash",
       icon: <Trash2 size={20} />,
