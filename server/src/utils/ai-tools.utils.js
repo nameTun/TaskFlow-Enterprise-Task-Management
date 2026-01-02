@@ -5,28 +5,25 @@
 const getMyTasksTool = {
   name: "getMyTasks",
   description:
-    "Công cụ tìm kiếm và lấy danh sách công việc (tasks). Dùng cho mọi câu hỏi liên quan đến liệt kê công việc.",
+    "Lấy danh sách công việc. Dùng khi user hỏi 'task của tôi', 'công việc hôm nay', 'tìm task'...",
   parameters: {
     type: "OBJECT",
     properties: {
       status: {
         type: "STRING",
-        description:
-          "Lọc theo trạng thái: 'todo', 'in_progress', 'review', 'done'.",
+        description: "Lọc trạng thái: 'todo', 'in_progress', 'review', 'done'.",
       },
       priority: {
         type: "STRING",
-        description: "Lọc theo độ ưu tiên: 'low', 'medium', 'high', 'urgent'.",
+        description: "Lọc ưu tiên: 'low', 'medium', 'high', 'urgent'.",
       },
       search: {
         type: "STRING",
-        description:
-          "Từ khóa tìm kiếm trong tiêu đề hoặc mô tả (Ví dụ: 'hợp đồng', 'bug login', 'báo cáo').",
+        description: "Từ khóa tìm kiếm (tiêu đề/mô tả).",
       },
       scope: {
         type: "STRING",
-        description:
-          "Phạm vi: 'all' (nếu admin muốn tìm toàn hệ thống), 'mine' (mặc định).",
+        description: "'all' (cho admin tìm hết) hoặc 'mine' (mặc định).",
       },
       limit: {
         type: "NUMBER",
@@ -38,13 +35,14 @@ const getMyTasksTool = {
 
 const createTaskTool = {
   name: "createTask",
-  description: "Tạo một công việc (task) mới.",
+  description:
+    "Tạo công việc mới. Dùng khi user nói 'tạo task', 'nhắc tôi làm...', 'thêm công việc'.",
   parameters: {
     type: "OBJECT",
     properties: {
       title: {
         type: "STRING",
-        description: "Tiêu đề task.",
+        description: "Tiêu đề task (Bắt buộc).",
       },
       description: {
         type: "STRING",
@@ -52,11 +50,11 @@ const createTaskTool = {
       },
       priority: {
         type: "STRING",
-        description: "Mức độ ưu tiên: 'low', 'medium', 'high'.",
+        description: "Ưu tiên: 'low', 'medium', 'high'.",
       },
       dueDate: {
         type: "STRING",
-        description: "Hạn hoàn thành (YYYY-MM-DD).",
+        description: "Hạn hoàn thành (ISO 8601 Date String: YYYY-MM-DD).",
       },
     },
     required: ["title"],
@@ -65,11 +63,19 @@ const createTaskTool = {
 
 const getSystemStatsTool = {
   name: "getSystemStats",
-  description: "Lấy thống kê số lượng User, Task, Team trong hệ thống.",
+  description:
+    "Lấy thống kê hệ thống (User, Task, Team). Chỉ dùng cho Admin/Lead.",
   parameters: {
     type: "OBJECT",
     properties: {},
   },
 };
-export const tools = [getMyTasksTool, createTaskTool, getSystemStatsTool];
+
+// Cấu trúc chuẩn cho @google/generative-ai
+const tools = [
+  {
+    functionDeclarations: [getMyTasksTool, createTaskTool, getSystemStatsTool],
+  },
+];
+export { tools };
 //
