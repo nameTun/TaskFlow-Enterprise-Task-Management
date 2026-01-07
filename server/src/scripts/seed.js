@@ -12,9 +12,9 @@ dotenv.config();
 const seedAdmin = async () => {
   try {
     // Kết nối DB
-    const mongoUri =
-      process.env.MONGO_URI || "mongodb://localhost:27017/enterprise_task_db";
-    await mongoose.connect(mongoUri);
+    const conn = await mongoose.connect(
+          `${process.env.MONGO_URI}` + `${process.env.MONGO_DB_NAME}`
+        );
     console.log("Connected to MongoDB...");
 
     // Thông tin Admin mặc định

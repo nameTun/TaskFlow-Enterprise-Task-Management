@@ -40,9 +40,9 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await reportService.getDashboardStats();
-        if (res && res.metadata) {
-          setData(res.metadata);
+        const response = await reportService.getDashboardStats();
+        if (response && response.metadata) {
+          setData(response.metadata);
         }
       } catch (error) {
         console.error("Failed to load dashboard stats", error);

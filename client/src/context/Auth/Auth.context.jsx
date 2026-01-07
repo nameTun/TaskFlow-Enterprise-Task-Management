@@ -116,7 +116,7 @@ export const AuthProvider = ({ children }) => {
       throw new Error(message);
     }
   };
-
+1
   // --- LOGOUT ---
   const logout = async () => {
     try {

@@ -10,8 +10,11 @@ const connectDB = async () => {
   try {
     // Sử dụng mongoose.connect để kết nối đến MongoDB.
     // MONGO_URI được lấy từ biến môi trường, chứa chuỗi kết nối đến DB.
-    const conn = await mongoose.connect(process.env.MONGO_URI);
-    console.log(`MongoDB đã kết nối: ${conn.connection.host}`);
+    const conn = await mongoose.connect(
+      `${process.env.MONGO_URI}` + `${process.env.MONGO_DB_NAME}`
+    );
+
+    console.log(`MongoDB đã kết nối: ${conn.connection.name}`);
   } catch (error) {
     console.error(`Lỗi kết nối MongoDB: ${error.message}`);
     // Thoát khỏi tiến trình với mã  lỗi 1, cho biết ứng dụng không thể chạy nếu không có kết nối DB.

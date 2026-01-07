@@ -64,7 +64,7 @@ const setRefreshTokenCookie = (res, refreshToken) => {
       process.env.JWT_REFRESH_EXPIRES_IN_MS || 7 * 24 * 60 * 60 * 1000
     ), // 7 ngày
     // path: "/", // Set path root để mọi request đều check được nếu cần
-    path: "/api/auth/refresh-token",
+    path: "/api/auth",
   });
 };
 

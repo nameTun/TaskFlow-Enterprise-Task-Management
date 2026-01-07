@@ -53,6 +53,7 @@ const TaskDetail = () => {
   const fetchTaskDetail = useCallback(async () => {
     try {
       setLoading(true);
+      // sử dụng useParams cảu thư viện react-router-dom để có thể lấy được id, vd như /task/TASK-001
       const response = await taskService.getTaskById(id);
       if (response && response.metadata) {
         setTask(response.metadata);

@@ -32,6 +32,7 @@ const protect = async (req, res, next) => {
     
     // Tìm người dùng dựa trên ID từ token đã giải mã
     // Bỏ qua trường passwordHash để không trả về mật khẩu
+    // gắn thêm thông tin user cho bất khi request nào từ client gửi xuống nếu cần xác thực
     req.user = await User.findById(decoded.id).select('-passwordHash');
 
     // Nếu không tìm thấy người dùng
