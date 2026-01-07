@@ -1,6 +1,4 @@
-
 import { ForbiddenError } from "../core/error.response.js";
-
 /**
  * TASK POLICY
  * Định nghĩa quy tắc: AI được làm gì trên đối tượng Task.

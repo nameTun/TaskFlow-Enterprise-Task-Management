@@ -244,11 +244,11 @@ const HeaderComponent = ({
             style={{ backgroundColor: "#1677ff" }}
             size="default"
           >
-            {user?.fullName?.[0] || "U"}
+            {user?.name?.[0] || "U"}
           </Avatar>
           <div className="hidden md:block leading-tight">
             <div className="text-sm font-medium text-gray-700 dark:text-gray-200">
-              {user?.fullName}
+              {user?.name}
             </div>
             <div className="text-xs text-gray-500">{user?.role}</div>
           </div>

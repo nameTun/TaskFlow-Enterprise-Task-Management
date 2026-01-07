@@ -19,16 +19,16 @@ router.use('/auth', authRoutes);
 router.use('/tasks', protect, taskRoutes);
 
 // Team Routes 
-router.use('/teams', teamRoutes);
+router.use('/teams',protect ,teamRoutes);
 
 // User Routes
-router.use("/users", userRoutes);
+router.use("/users",protect, userRoutes);
 
-router.use("/notifications", notificationRoutes);
+router.use("/notifications", protect, notificationRoutes);
 
 // AI Routes
-router.use("/ai", aiRoutes); 
+router.use("/ai", protect, aiRoutes); 
 
 // Dashboard data analysis Routes
-router.use("/reports", reportRoutes);
+router.use("/reports", protect, reportRoutes);
 export default router;

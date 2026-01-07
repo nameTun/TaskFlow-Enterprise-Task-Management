@@ -12,23 +12,28 @@ const createTask = async (userId, taskDto) => {
 
   // 1. Tự động gắn Task vào Team của người tạo (nếu có)
   if (creator.teamId && !taskDto.teamId) {
-      taskDto.teamId = creator.teamId;
-      // Mặc định visibility là 'team' nếu thuộc team, trừ khi user chọn khác
-      if (!taskDto.visibility) taskDto.visibility = 'team';
+    taskDto.teamId = creator.teamId;
+    // Mặc định visibility là 'team' nếu thuộc team, trừ khi user chọn khác
+    if (!taskDto.visibility) taskDto.visibility = "team";
   }
 
   // 2. Validate Assignee (Chống giao việc xuyên team)
   if (taskDto.assignedTo) {
     const assignee = await User.findById(taskDto.assignedTo);
     if (!assignee) {
-      throw new NotFoundError('Người được giao việc không tồn tại');
+      throw new NotFoundError("Người được giao việc không tồn tại");
     }
 
     // Nếu người tạo thuộc team, người được giao bắt buộc phải cùng team
     if (creator.teamId) {
-        if (!assignee.teamId || assignee.teamId.toString() !== creator.teamId.toString()) {
-            throw new BadRequestError('Không thể giao việc cho thành viên không thuộc nhóm của bạn');
-        }
+      if (
+        !assignee.teamId ||
+        assignee.teamId.toString() !== creator.teamId.toString()
+      ) {
+        throw new BadRequestError(
+          "Không thể giao việc cho thành viên không thuộc nhóm của bạn"
+        );
+      }
     }
   }
 
@@ -38,8 +43,8 @@ const createTask = async (userId, taskDto) => {
   });
 
   return await newTask.populate([
-    { path: 'createdBy', select: 'name email avatar' },
-    { path: 'assignedTo', select: 'name email avatar' }
+    { path: "createdBy", select: "name email avatar" },
+    { path: "assignedTo", select: "name email avatar" },
   ]);
 };
 
@@ -92,9 +97,9 @@ const getAllTasks = async (filter, queryOptions) => {
 const getDeletedTasks = async (filter) => {
   return await Task.find(filter)
     .sort({ deletedAt: -1 })
-    .populate('assignedTo', 'name email avatar')
-    .populate('createdBy', 'name email avatar')
-    .populate('deletedBy', 'name email avatar')
+    .populate("assignedTo", "name email avatar")
+    .populate("createdBy", "name email avatar")
+    .populate("deletedBy", "name email avatar")
     .lean();
 };
 
@@ -102,20 +107,19 @@ const getDeletedTasks = async (filter) => {
  * Lấy chi tiết Task
  */
 const getTaskById = async (id, withDeleted = false) => {
-  const query = mongoose.isValidObjectId(id) 
-      ? { _id: id }
-      : { taskId: id };
+  // có thể truy vấn DB bằng 2 cách: dùng mã ObjectId hoặc là taskID
+  const query = mongoose.isValidObjectId(id) ? { _id: id } : { taskId: id };
 
   if (!withDeleted) {
     query.deletedAt = null;
   }
 
   const task = await Task.findOne(query)
-    .populate('createdBy', 'name email avatar')
-    .populate('assignedTo', 'name email avatar');
-  
+    .populate("createdBy", "name email avatar")
+    .populate("assignedTo", "name email avatar");
+
   if (!task) {
-    throw new NotFoundError('Công việc không tồn tại');
+    throw new NotFoundError("Công việc không tồn tại");
   }
 
   return task;
@@ -127,23 +131,26 @@ const getTaskById = async (id, withDeleted = false) => {
 const updateTask = async (taskId, updateData) => {
   // Validate nghiệp vụ assign khi update
   if (updateData.assignedTo) {
-     const assignee = await User.findById(updateData.assignedTo);
-     if (!assignee) throw new NotFoundError('Người được giao việc không tồn tại');
-     
-     // Logic check team khi update assignee cũng nên có, nhưng tạm thời bỏ qua cho đơn giản
-     // hoặc cần lấy task hiện tại ra để so sánh teamId
+    const assignee = await User.findById(updateData.assignedTo);
+    if (!assignee)
+      throw new NotFoundError("Người được giao việc không tồn tại");
+
+    // Logic check team khi update assignee cũng nên có, nhưng tạm thời bỏ qua cho đơn giản
+    // hoặc cần lấy task hiện tại ra để so sánh teamId
   }
 
-  const query = mongoose.isValidObjectId(taskId) ? { _id: taskId } : { taskId: taskId };
+  const query = mongoose.isValidObjectId(taskId)
+    ? { _id: taskId }
+    : { taskId: taskId };
 
   const updatedTask = await Task.findOneAndUpdate(query, updateData, {
-    new: true, 
-    runValidators: true 
+    new: true,
+    runValidators: true,
   })
-  .populate('createdBy', 'name email avatar')
-  .populate('assignedTo', 'name email avatar');
+    .populate("createdBy", "name email avatar")
+    .populate("assignedTo", "name email avatar");
 
-  if (!updatedTask) throw new NotFoundError('Công việc không tồn tại');
+  if (!updatedTask) throw new NotFoundError("Công việc không tồn tại");
 
   return updatedTask;
 };
@@ -152,15 +159,17 @@ const updateTask = async (taskId, updateData) => {
  * Xóa mềm Task
  */
 const deleteTask = async (taskId, userId) => {
-  const query = mongoose.isValidObjectId(taskId) ? { _id: taskId } : { taskId: taskId };
-  
-  const task = await Task.findOneAndUpdate(query, { 
+  const query = mongoose.isValidObjectId(taskId)
+    ? { _id: taskId }
+    : { taskId: taskId };
+
+  const task = await Task.findOneAndUpdate(query, {
     deletedAt: new Date(),
-    deletedBy: userId
+    deletedBy: userId,
   });
-  
-  if (!task) throw new NotFoundError('Công việc không tồn tại');
-  
+
+  if (!task) throw new NotFoundError("Công việc không tồn tại");
+
   return true;
 };
 
@@ -168,13 +177,15 @@ const deleteTask = async (taskId, userId) => {
  * Khôi phục Task
  */
 const restoreTask = async (taskId) => {
-  const query = mongoose.isValidObjectId(taskId) ? { _id: taskId } : { taskId: taskId };
-  
-  const task = await Task.findOneAndUpdate(query, { 
+  const query = mongoose.isValidObjectId(taskId)
+    ? { _id: taskId }
+    : { taskId: taskId };
+
+  const task = await Task.findOneAndUpdate(query, {
     deletedAt: null,
-    deletedBy: null 
+    deletedBy: null,
   });
-  if (!task) throw new NotFoundError('Công việc không tồn tại');
+  if (!task) throw new NotFoundError("Công việc không tồn tại");
 
   return task;
 };

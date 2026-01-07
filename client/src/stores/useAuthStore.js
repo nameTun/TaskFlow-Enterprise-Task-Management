@@ -36,18 +36,6 @@ export const useAuthStore = create(
       // Cập nhật trạng thái loading
       setLoading: (loading) => set({ isLoading: loading }),
     }),
-    {
-      name: "auth-storage", // Tên key trong localStorage
-      storage: createJSONStorage(() => localStorage), // Chỉ định sử dụng localStorage
-      // Chỉ lưu `accessToken` vào localStorage
-      partialize: (state) => ({ accessToken: state.accessToken }),
-      // Hàm này sẽ được gọi khi state được khôi phục từ localStorage
-      onRehydrateStorage: () => (state) => {
-        if (state) {
-          // Cập nhật trạng thái isAuthenticated dựa trên sự tồn tại của accessToken
-          state.isAuthenticated = !!state.accessToken;
-        }
-      },
-    }
+
   )
 );

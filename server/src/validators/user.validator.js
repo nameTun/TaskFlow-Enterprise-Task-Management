@@ -52,6 +52,10 @@ const validateAndCreateDto = (schema, DtoClass) => (req, res, next) => {
     // Middleware xử lý lỗi sẽ bắt và trả về phản hồi.
     throw new BadRequestError(error.details[0].message);
   }
+
+  // Cập nhật req.body với value đã được Joi xử lý (trim, convert type, strip unknown...)
+  req.body = value;
+
   // Nếu kiểm tra thành công, tạo DTO mới và gắn vào request.
   req.dto = new DtoClass(value);
   next();

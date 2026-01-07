@@ -84,12 +84,12 @@ const Login = () => {
     setIsLoading(true);
     try {
       if (activeTab === "login") {
-        await login(values.email, values.password);
-        message.success("Chào mừng trở lại!");
+        const user = await login(values.email, values.password);
+        message.success(`Chào mừng ${user.name} trở lại!`);
         // Navigate về trang trước đó hoặc trang chủ
-        navigate(from, { replace: true });
+        navigate("/");
       } else {
-        await register(values.fullName, values.email, values.password);
+        await register(values.name, values.email, values.password);
         message.success("Đăng ký thành công!");
         navigate(from, { replace: true });
       }
@@ -179,7 +179,7 @@ const Login = () => {
             >
               {activeTab === "register" && (
                 <Form.Item
-                  name="fullName"
+                  name="name"
                   rules={[{ required: true, message: "Vui lòng nhập họ tên!" }]}
                 >
                   <Input
