@@ -58,7 +58,7 @@ const getTrashController = asyncHandler(async (req, res) => {
   const tasks = await getDeletedTasks(filter);
   const tasksDto = tasks.map((task) => new TaskDto(task));
 
-  
+
   new OK({
     message: "Lấy thùng rác thành công",
     metadata: tasksDto,
@@ -67,7 +67,8 @@ const getTrashController = asyncHandler(async (req, res) => {
 
 // Lấy chi tiết task
 const getTaskByIdController = asyncHandler(async (req, res) => {
-  const task = await getTaskById(req.params.id);
+  const withDeleted = req.query.with_deleted === 'true';
+  const task = await getTaskById(req.params.id, withDeleted);
 
   // Policy Check: VIEW
   ensure("VIEW", req.user, task);

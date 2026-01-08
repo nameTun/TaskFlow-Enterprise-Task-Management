@@ -161,18 +161,18 @@ const TeamPage = () => {
       title: "Role",
       dataIndex: "role",
       key: "role",
-      render: (role) => (
-        <Tag
-          color={
-            role === "team_lead" || team?.lead?.id === role?.userId
-              ? "blue"
-              : "default"
-          }
-          className="uppercase"
-        >
-          {role}
-        </Tag>
-      ),
+      render: (role, record) => {
+        const isLeader = team?.lead?.id === record.userId;
+        const displayRole = isLeader ? "Team Lead" : role;
+        return (
+          <Tag
+            color={isLeader ? "blue" : "default"}
+            className="uppercase"
+          >
+            {displayRole}
+          </Tag>
+        );
+      },
     },
     {
       title: "Action",
