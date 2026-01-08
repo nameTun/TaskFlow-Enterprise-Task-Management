@@ -1,6 +1,6 @@
 import Task from "../models/task.model.js";
 import User from "../models/user.model.js";
-import { NotFoundError, ForbiddenError } from "../core/error.response.js";
+import { NotFoundError, ForbiddenError, BadRequestError } from "../core/error.response.js";
 import mongoose from "mongoose";
 
 /**
@@ -13,24 +13,47 @@ const createTask = async (userId, taskDto) => {
   // 1. Tự động gắn Task vào Team của người tạo (nếu có)
   if (creator.teamId && !taskDto.teamId) {
     taskDto.teamId = creator.teamId;
-    // Mặc định visibility là 'team' nếu thuộc team, trừ khi user chọn khác
     if (!taskDto.visibility) taskDto.visibility = "team";
   }
 
-  // 2. Validate Assignee (Chống giao việc xuyên team)
+  // 2. Validate Priority
+  if (taskDto.priority && !["low", "medium", "high", "urgent"].includes(taskDto.priority)) {
+    taskDto.priority = "medium"; // Fallback nếu gửi linh tinh
+  }
+
+  // 3. Validate Assignee (Chống giao việc xuyên team & Logic Privacy)
+  let isAssignedToOther = false;
   if (taskDto.assignedTo) {
+    // Nếu tự giao cho mình thì không tính là "giao cho người khác"
+    if (taskDto.assignedTo.toString() !== userId.toString()) {
+      isAssignedToOther = true;
+
+      // RULE: User thường (member) không được giao việc cho người khác
+      // Chỉ Admin hoặc Team Lead mới được giao việc
+      if (creator.role !== 'admin' && creator.role !== 'team_lead') {
+        throw new ForbiddenError("Bạn chỉ có thể tạo công việc cho chính mình.");
+      }
+    }
+
+    // NGHIỆP VỤ MỚI: Nếu visibility là Private -> Không được giao cho người khác
+    if (taskDto.visibility === "private" && isAssignedToOther) {
+      throw new BadRequestError("Task riêng tư (Private) thì không thể giao cho người khác!");
+    }
+
     const assignee = await User.findById(taskDto.assignedTo);
     if (!assignee) {
       throw new NotFoundError("Người được giao việc không tồn tại");
     }
 
-    // Nếu người tạo thuộc team, người được giao bắt buộc phải cùng team
-    if (creator.teamId) {
+    // Logic Check Team:
+    // Nếu Creator là Admin -> Bỏ qua check team (Admin is GOD)
+    // Nếu Creator KHÔNG phải Admin -> Bắt buộc Assignee phải cùng Team
+    if (creator.role !== "admin" && creator.teamId) {
       if (
         !assignee.teamId ||
         assignee.teamId.toString() !== creator.teamId.toString()
       ) {
-        throw new BadRequestError(
+        throw new ForbiddenError(
           "Không thể giao việc cho thành viên không thuộc nhóm của bạn"
         );
       }
@@ -41,6 +64,23 @@ const createTask = async (userId, taskDto) => {
     ...taskDto,
     createdBy: userId,
   });
+
+  // 4. Tạo Notification nếu giao việc cho người khác
+  if (isAssignedToOther && taskDto.assignedTo) {
+    // Import dynamic để tránh Circular Dependency nếu cần, hoặc giả sử Notification Model đã có
+    // Tạm thời comment logic này để implement chi tiết ở bước sau (Notification Service)
+    // await NotificationService.createNotification({
+    //   recipientId: taskDto.assignedTo,
+    //   senderId: userId,
+    //   type: 'ASSIGN_TASK',
+    //   taskId: newTask._id,
+    //   message: `${creator.name} đã giao cho bạn công việc: ${newTask.title}`
+    // });
+    /**
+     * NOTE: Logic Notification sẽ được thêm vào ở Phase tiếp theo.
+     * Hiện tại ta chỉ đảm bảo Task được tạo đúng đã.
+     */
+  }
 
   return await newTask.populate([
     { path: "createdBy", select: "name email avatar" },

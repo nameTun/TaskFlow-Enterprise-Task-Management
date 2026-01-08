@@ -21,8 +21,10 @@ import {
 } from "../constants/constant";
 import taskService from "../services/task.service";
 import teamService from "../services/team.service";
+import userService from "../services/user.service"; // [NEW] Import User Service
 import dayjs from "dayjs";
 import { Users, Lock } from "lucide-react";
+import { useAuth } from "../context/Auth/Auth.context"; // [NEW] Import Auth Context
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -32,32 +34,88 @@ const CreateTaskModal = ({ open, onCancel, onSuccess }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [teamMembers, setTeamMembers] = useState([]);
   const [hasTeam, setHasTeam] = useState(false);
+  const { user } = useAuth(); // [NEW] Get current user
+
+  const visibility = Form.useWatch("visibility", form);
 
   // Load team members khi modal mở
   useEffect(() => {
     if (open) {
       const fetchMembers = async () => {
         try {
-          const res = await teamService.getMyTeam();
-          if (res && res.metadata) {
-            setHasTeam(true);
-            // Default visibility thành 'team' nếu user có team
+          let members = [];
+
+          // 1. Nếu là Admin: Lấy danh sách TOÀN BỘ User
+          if (user?.role === 'admin') {
+            setHasTeam(true); // Admin luôn có quyền giao việc
             form.setFieldValue("visibility", "team");
 
-            if (res.metadata.members) {
-              setTeamMembers(res.metadata.members);
+            const res = await userService.getAllUsers({ limit: 1000 });
+            if (res && res.metadata && res.metadata.users) {
+              // Map UserDto -> Common Format
+              members = res.metadata.users.map(u => ({
+                id: u.id,
+                name: u.name,
+                avatar: u.avatar,
+                email: u.email
+              }));
             }
-          } else {
-            setHasTeam(false);
-            form.setFieldValue("visibility", "private");
           }
+          // 2. Nếu là User thường/Lead: Lấy danh sách Team
+          else {
+            const res = await teamService.getMyTeam();
+            if (res && res.metadata) {
+              setHasTeam(true);
+
+              // Default visibility logic
+              if (user?.role === 'admin' || user?.role === 'team_lead') {
+                form.setFieldValue("visibility", "team");
+              } else {
+                form.setFieldValue("visibility", "private");
+              }
+
+              if (res.metadata.members) {
+                // Map Team Member -> Common Format
+                // TeamDto đã flatten data, nên ta lấy trực tiếp
+                members = res.metadata.members.map(m => ({
+                  id: m.userId,
+                  name: m.name,
+                  avatar: m.avatar,
+                  email: m.email
+                }));
+              }
+            } else {
+              setHasTeam(false);
+              form.setFieldValue("visibility", "private");
+            }
+          }
+
+
+          // Filter loại bỏ chính user đang đăng nhập
+          if (user) {
+            const currentUserId = user.id || user._id; // Cover all cases
+            members = members.filter(m => m.id !== currentUserId);
+          }
+
+          setTeamMembers(members);
+
         } catch (error) {
-          setHasTeam(false);
+          console.error("Fetch members error:", error);
+          if (user?.role !== 'admin') {
+            setHasTeam(false);
+          }
         }
       };
       fetchMembers();
     }
-  }, [open, form]);
+  }, [open, form, user]);
+
+  // Effect: Nếu chuyển sang Private -> Clear người được giao việc
+  useEffect(() => {
+    if (visibility === "private") {
+      form.setFieldValue("assignedTo", undefined);
+    }
+  }, [visibility, form]);
 
   const handleFinish = async (values) => {
     setIsLoading(true);
@@ -134,10 +192,10 @@ const CreateTaskModal = ({ open, onCancel, onSuccess }) => {
               <Select
                 placeholder="Chọn thành viên"
                 allowClear
-                disabled={!hasTeam}
+                disabled={!hasTeam || visibility === "private" || (user?.role !== 'admin' && user?.role !== 'team_lead')} // Disabled nếu Private hoặc là User thường
               >
                 {teamMembers.map((member) => (
-                  <Option key={member.userId} value={member.userId}>
+                  <Option key={member.id} value={member.id}>
                     <div className="flex items-center gap-2">
                       <Avatar size="small" src={member.avatar}>
                         {member.name?.[0]}
@@ -150,6 +208,16 @@ const CreateTaskModal = ({ open, onCancel, onSuccess }) => {
               {!hasTeam && (
                 <div className="text-xs text-gray-400 mt-1">
                   Bạn cần gia nhập Team để giao việc.
+                </div>
+              )}
+              {visibility === "private" && (
+                <div className="text-xs text-orange-400 mt-1">
+                  Task riêng tư không thể giao cho người khác.
+                </div>
+              )}
+              {user?.role !== 'admin' && user?.role !== 'team_lead' && (
+                <div className="text-xs text-gray-400 mt-1">
+                  Bạn chỉ có thể tạo công việc cho chính mình.
                 </div>
               )}
             </Form.Item>
@@ -225,12 +293,20 @@ const CreateTaskModal = ({ open, onCancel, onSuccess }) => {
                     <Lock size={14} /> Riêng tư
                   </Space>
                 </Radio.Button>
-                <Radio.Button value="team" disabled={!hasTeam}>
+                <Radio.Button
+                  value="team"
+                  disabled={!hasTeam || (user?.role !== 'admin' && user?.role !== 'team_lead')}
+                >
                   <Space size="small">
                     <Users size={14} /> Team
                   </Space>
                 </Radio.Button>
               </Radio.Group>
+              {user?.role !== 'admin' && user?.role !== 'team_lead' && (
+                <div className="text-xs text-gray-400 mt-1">
+                  Bạn chỉ có thể tạo task cá nhân (Riêng tư).
+                </div>
+              )}
             </Form.Item>
           </Col>
         </Row>

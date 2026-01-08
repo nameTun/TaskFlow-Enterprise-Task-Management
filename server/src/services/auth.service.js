@@ -3,6 +3,7 @@ import User from "../models/user.model.js";
 import { generateTokens } from "../utils/token.utils.js";
 import KeyToken from "../models/keyToken.model.js";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 import {
   BadRequestError,
   AuthFailureError,
@@ -94,6 +95,9 @@ const loginGoogleUser = async (credential) => {
     // 3. Tạo Tokens cho hệ thống
     const { accessToken, refreshToken } = await generateTokens(user);
 
+    // [NEW] Trigger Deadline Check
+    checkDeadlineAndNotify(user._id);
+
     return { user, accessToken, refreshToken };
   } catch (error) {
     console.error("Google Auth Error:", error);
@@ -121,6 +125,9 @@ const loginUser = async (loginUserDto) => {
   }
   // 3. Tạo tokens
   const { accessToken, refreshToken } = await generateTokens(user);
+
+  // [NEW] Trigger Deadline Check
+  checkDeadlineAndNotify(user._id);
 
   return { user, accessToken, refreshToken };
 };
@@ -196,11 +203,14 @@ const refreshUserToken = async (incomingRefreshToken) => {
     );
     await storedRefreshToken.save();
 
+    // [NEW] Trigger Deadline Check (Khi F5 hoặc mở lại app)
+    checkDeadlineAndNotify(user._id);
+
     return { user, accessToken, refreshToken };
   } catch (error) {
     if (error.name === "TokenExpiredError") {
       await KeyToken.deleteOne({ token: incomingRefreshToken });
-      throw ForbiddenError("Refresh Token đã hết hạn, vui lòng đăng nhập lại.");
+      throw new ForbiddenError("Refresh Token đã hết hạn, vui lòng đăng nhập lại.");
     }
     console.error("Lỗi khi làm mới token trong service:", error);
     throw new Error("Lỗi máy chủ trong quá trình làm mới token");

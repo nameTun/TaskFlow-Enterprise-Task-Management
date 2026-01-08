@@ -21,9 +21,9 @@ const protect = async (req, res, next) => {
 
   // Nếu không tìm thấy token nào
   if (!token) {
-    throw new AuthFailureError(
+    return next(new AuthFailureError(
       "Bạn chưa đăng nhập! Vui lòng đăng nhập để truy cập."
-    );
+    ));
   }
 
   try {
@@ -44,13 +44,13 @@ const protect = async (req, res, next) => {
     next();
   } catch (error) {
     if (error.name === "TokenExpiredError") {
-      throw new AuthFailureError(
+      return next(new AuthFailureError(
         "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."
-      );
+      ));
     }
-    throw new AuthFailureError(
+    return next(new AuthFailureError(
       "Token không hợp lệ hoặc phiên đăng nhập bị lỗi."
-    );
+    ));
   }
 };
 
