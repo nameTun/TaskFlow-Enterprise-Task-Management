@@ -8,6 +8,11 @@ import {
   AuthFailureError,
   ForbiddenError,
 } from "../core/error.response.js";
+import { OAuth2Client } from "google-auth-library";
+import { checkDeadlineAndNotify } from "../helpers/notification.helper.js"; // [NEW] Import helper
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+import crypto from "crypto";
 
 /**
  * @desc Register a new user using a DTO.
@@ -156,7 +161,7 @@ const refreshUserToken = async (incomingRefreshToken) => {
     // Nếu client gửi token nhưng DB không có -> Có thể token giả hoặc đã bị xóa -> Nghi vấn hack
     // Ở đây có thể thêm logic xóa hết token của user đó để bảo mật
     throw new ForbiddenError("Phiên đăng nhập không hợp lệ hoặc đã hết hạn");
-    
+
   }
 
   if (
@@ -185,9 +190,9 @@ const refreshUserToken = async (incomingRefreshToken) => {
     storedRefreshToken.lastUsedAt = new Date();
     storedRefreshToken.expiresAt = new Date(
       Date.now() +
-        parseInt(
-          process.env.JWT_REFRESH_EXPIRES_IN_MS || 7 * 24 * 60 * 60 * 1000
-        )
+      parseInt(
+        process.env.JWT_REFRESH_EXPIRES_IN_MS || 7 * 24 * 60 * 60 * 1000
+      )
     );
     await storedRefreshToken.save();
 
@@ -201,4 +206,4 @@ const refreshUserToken = async (incomingRefreshToken) => {
     throw new Error("Lỗi máy chủ trong quá trình làm mới token");
   }
 };
-export { registerUser, loginUser, logoutUser, refreshUserToken };
+export { registerUser, loginUser, logoutUser, refreshUserToken, loginGoogleUser };
