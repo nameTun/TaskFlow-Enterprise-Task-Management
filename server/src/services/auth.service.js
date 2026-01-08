@@ -9,11 +9,11 @@ import {
   AuthFailureError,
   ForbiddenError,
 } from "../core/error.response.js";
-import { OAuth2Client } from "google-auth-library"; // Fixed import
+import { OAuth2Client } from "google-auth-library";
 import { checkDeadlineAndNotify } from "../helpers/notification.helper.js"; // [NEW] Import helper
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-
+import crypto from "crypto";
 
 /**
  * @desc Register a new user using a DTO.
@@ -216,4 +216,4 @@ const refreshUserToken = async (incomingRefreshToken) => {
     throw new Error("Lỗi máy chủ trong quá trình làm mới token");
   }
 };
-export { registerUser, loginUser, loginGoogleUser, logoutUser, refreshUserToken };
+export { registerUser, loginUser, logoutUser, refreshUserToken, loginGoogleUser };

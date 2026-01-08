@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useRef} from "react";
+import React, { createContext, useContext, useEffect, useRef } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../stores/useAuthStore";
 
@@ -105,7 +105,7 @@ export const AuthProvider = ({ children }) => {
     try {
       // Gửi token của Google xuống backend để xác thực và lấy session hệ thống
       const response = await api.post("/auth/google", { credential });
-      const { user, tokens } = response.metadata;
+      const { user, tokens } = response.data.metadata;
 
       loginSuccess(user, tokens.accessToken);
       return user;
@@ -116,7 +116,7 @@ export const AuthProvider = ({ children }) => {
       throw new Error(message);
     }
   };
-1
+  1
   // --- LOGOUT ---
   const logout = async () => {
     try {

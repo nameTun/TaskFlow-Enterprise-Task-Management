@@ -4,6 +4,7 @@ import {
   loginUser,
   logoutUser,
   refreshUserToken,
+  loginGoogleUser,
 } from "../services/auth.service.js";
 import { CREATED, OK } from "../core/success.response.js";
 import { setRefreshTokenCookie } from "../utils/token.utils.js";
@@ -64,14 +65,14 @@ const loginGoogle = asyncHandler(async (req, res) => {
 
 const logout = asyncHandler(async (req, res) => {
   const refreshToken = req.cookies.refreshToken;
-  
+
   await logoutUser(refreshToken);
   res.clearCookie("refreshToken", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
     // path: "/",
-     path: "/api/auth/refresh-token" // Quan trọng: Path phải khớp với lúc set cookie
+    path: "/api/auth/refresh-token" // Quan trọng: Path phải khớp với lúc set cookie
   });
   new OK({ message: "Đăng xuất thành công" }).send(res);
 });
