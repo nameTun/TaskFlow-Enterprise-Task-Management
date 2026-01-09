@@ -6,6 +6,9 @@ import {
   updateTask,
   deleteTask,
   restoreTask,
+  addSubTask,
+  updateSubTask,
+  deleteSubTask,
 } from "../services/task.service.js";
 import { CREATED, OK } from "../core/success.response.js";
 import CreateTaskDto from "../dtos/create-task.dto.js";
@@ -121,6 +124,44 @@ const restoreTaskController = asyncHandler(async (req, res) => {
     message: "Khôi phục công việc thành công",
   }).send(res);
 });
+// --- SUBTASK CONTROLLERS ---
+
+const addSubTaskController = asyncHandler(async (req, res) => {
+  const task = await getTaskById(req.params.taskId);
+  ensure("UPDATE", req.user, task); // Chỉ người có quyền sửa task mới được thêm subtask
+
+  const updatedTask = await addSubTask(req.params.taskId, req.body);
+
+  new OK({
+    message: "Thêm việc nhỏ thành công",
+    metadata: new TaskDto(updatedTask),
+  }).send(res);
+});
+
+const updateSubTaskController = asyncHandler(async (req, res) => {
+  const task = await getTaskById(req.params.taskId);
+  ensure("UPDATE", req.user, task);
+
+  const updatedTask = await updateSubTask(req.params.taskId, req.params.subTaskId, req.body);
+
+  new OK({
+    message: "Cập nhật việc nhỏ thành công",
+    metadata: new TaskDto(updatedTask),
+  }).send(res);
+});
+
+const deleteSubTaskController = asyncHandler(async (req, res) => {
+  const task = await getTaskById(req.params.taskId);
+  ensure("UPDATE", req.user, task);
+
+  const updatedTask = await deleteSubTask(req.params.taskId, req.params.subTaskId);
+
+  new OK({
+    message: "Xóa việc nhỏ thành công",
+    metadata: new TaskDto(updatedTask),
+  }).send(res);
+});
+
 export {
   createTaskController,
   getAllTasksController,
@@ -129,5 +170,7 @@ export {
   deleteTaskController,
   getTrashController,
   restoreTaskController,
-
+  addSubTaskController,
+  updateSubTaskController,
+  deleteSubTaskController,
 };

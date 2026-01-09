@@ -115,6 +115,14 @@ const taskSchema = new mongoose.Schema(
       ref: "User",
       default: null,
     },
+    // --- Subtasks (Checklists) ---
+    subTasks: [
+      {
+        title: { type: String, required: true },
+        isCompleted: { type: Boolean, default: false },
+        addedAt: { type: Date, default: Date.now },
+      },
+    ],
   },
   {
     timestamps: true, // Tự động thêm trường `createdAt` và `updatedAt`
@@ -122,13 +130,13 @@ const taskSchema = new mongoose.Schema(
   }
 );
 // --- MIDDLEWARE (LOGIC SINH SHORT ID) ---
-taskSchema.pre('save', async function(next) {
+taskSchema.pre('save', async function (next) {
   if (this.isNew) {
     try {
       const counter = await Counter.findByIdAndUpdate(
         { _id: 'taskId' },
         { $inc: { seq: 1 } },
-        { new: true, upsert: true } 
+        { new: true, upsert: true }
       );
       this.taskId = `TASK-${counter.seq}`;
       next();

@@ -33,7 +33,8 @@ import {
   TaskPriorityLabels,
 } from "../constants/constant";
 import taskService from "../services/task.service";
-import EditTaskModal from "../components/EditTaskModal"; // Import Component Mới
+import EditTaskModal from "../components/EditTaskModal";
+import SubtaskList from "../components/SubtaskList";
 import dayjs from "dayjs";
 
 const { Title, Paragraph } = Typography;
@@ -90,6 +91,13 @@ const TaskDetail = () => {
   const handleEditSuccess = () => {
     setIsEditModalOpen(false);
     fetchTaskDetail(); // Tải lại toàn bộ thông tin task mới nhất từ server
+  };
+
+  // Optimize: Update Local State without Refetching
+  const handleTaskUpdate = (updatedTask) => {
+    // If updatedTask is the full response object, try to get metadata
+    const newData = updatedTask.metadata ? updatedTask.metadata : updatedTask;
+    setTask((prev) => ({ ...prev, ...newData }));
   };
 
   // Handle Delete
@@ -217,6 +225,15 @@ const TaskDetail = () => {
                 </>
               )}
             </Card>
+
+            {/* Checklist Section */}
+            <Card className="shadow-sm">
+              <SubtaskList
+                task={task}
+                onUpdate={fetchTaskDetail}
+                onTaskUpdate={handleTaskUpdate}
+              />
+            </Card>
           </div>
         </Col>
 
@@ -327,7 +344,7 @@ const TaskDetail = () => {
         onSuccess={handleEditSuccess}
         task={task}
       />
-    </div>
+    </div >
   );
 };
 
