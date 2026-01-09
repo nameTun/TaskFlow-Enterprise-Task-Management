@@ -9,6 +9,7 @@ class TaskDto {
     this.startDate = task.startDate;
     this.dueDate = task.dueDate;
     this.completedAt = task.completedAt;
+    this.subTasks = task.subTasks || []; // Include subtasks
 
     // Format thông tin người tạo (nếu đã populate)
     if (task.createdBy && task.createdBy._id) {

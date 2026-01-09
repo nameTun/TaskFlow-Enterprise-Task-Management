@@ -61,6 +61,40 @@ const taskService = {
     const response = await api.patch(`/tasks/${id}/restore`);
     return response.data;
   },
+
+  /**
+   * Thêm subtask
+   * @param {string} taskId
+   * @param {Object} data - { title }
+   */
+  addSubTask: async (taskId, data) => {
+    const response = await api.post(`/tasks/${taskId}/subtasks`, data);
+    return response.data;
+  },
+
+  /**
+   * Cập nhật subtask
+   * @param {string} taskId
+   * @param {string} subTaskId
+   * @param {Object} data - { title, isCompleted }
+   */
+  updateSubTask: async (taskId, subTaskId, data) => {
+    const response = await api.patch(
+      `/tasks/${taskId}/subtasks/${subTaskId}`,
+      data
+    );
+    return response.data;
+  },
+
+  /**
+   * Xóa subtask
+   * @param {string} taskId
+   * @param {string} subTaskId
+   */
+  deleteSubTask: async (taskId, subTaskId) => {
+    const response = await api.delete(`/tasks/${taskId}/subtasks/${subTaskId}`);
+    return response.data;
+  },
 };
 
 export default taskService;

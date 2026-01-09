@@ -7,12 +7,15 @@ import {
   deleteTaskController,
   restoreTaskController,
   getTrashController,
+  addSubTaskController,
+  updateSubTaskController,
+  deleteSubTaskController,
 } from "../controllers/task.controller.js";
 import {
   validateCreateTask,
   validateUpdateTask,
 } from "../validators/task.validator.js";
-import {restrictTo } from "../middlewares/auth.middleware.js";
+import { restrictTo } from "../middlewares/auth.middleware.js";
 const router = express.Router();
 
 /**
@@ -230,6 +233,46 @@ router.delete(
   "/:id",
   restrictTo("admin", "team_lead", "user"),
   deleteTaskController
+);
+
+// --- SUBTASKS ---
+/**
+ * @swagger
+ * /tasks/{taskId}/subtasks:
+ *   post:
+ *     summary: Thêm công việc nhỏ (Checklist)
+ *     tags: [Tasks]
+ */
+router.post(
+  "/:taskId/subtasks",
+  restrictTo("admin", "team_lead", "user"),
+  addSubTaskController
+);
+
+/**
+ * @swagger
+ * /tasks/{taskId}/subtasks/{subTaskId}:
+ *   patch:
+ *     summary: Cập nhật công việc nhỏ (Toggle check / Rename)
+ *     tags: [Tasks]
+ */
+router.patch(
+  "/:taskId/subtasks/:subTaskId",
+  restrictTo("admin", "team_lead", "user"),
+  updateSubTaskController
+);
+
+/**
+ * @swagger
+ * /tasks/{taskId}/subtasks/{subTaskId}:
+ *   delete:
+ *     summary: Xóa công việc nhỏ
+ *     tags: [Tasks]
+ */
+router.delete(
+  "/:taskId/subtasks/:subTaskId",
+  restrictTo("admin", "team_lead", "user"),
+  deleteSubTaskController
 );
 
 export default router;

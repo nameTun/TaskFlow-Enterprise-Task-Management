@@ -230,6 +230,75 @@ const restoreTask = async (taskId) => {
   return task;
 };
 
+
+/**
+ * Thêm Subtask
+ */
+const addSubTask = async (taskId, subTaskDto) => {
+  const query = mongoose.isValidObjectId(taskId)
+    ? { _id: taskId }
+    : { taskId: taskId };
+
+  const task = await Task.findOneAndUpdate(
+    query,
+    {
+      $push: {
+        subTasks: {
+          title: subTaskDto.title,
+          isCompleted: false,
+          addedAt: new Date(),
+        },
+      },
+    },
+    { new: true }
+  );
+
+  if (!task) throw new NotFoundError("Công việc không tồn tại");
+  return task;
+};
+
+/**
+ * Cập nhật Subtask (Toggle check / Rename)
+ */
+const updateSubTask = async (taskId, subTaskId, updateDto) => {
+  const query = mongoose.isValidObjectId(taskId)
+    ? { _id: taskId, "subTasks._id": subTaskId }
+    : { taskId: taskId, "subTasks._id": subTaskId };
+
+  const updateFields = {};
+  if (updateDto.title !== undefined) updateFields["subTasks.$.title"] = updateDto.title;
+  if (updateDto.isCompleted !== undefined) updateFields["subTasks.$.isCompleted"] = updateDto.isCompleted;
+
+  const task = await Task.findOneAndUpdate(
+    query,
+    { $set: updateFields },
+    { new: true }
+  );
+
+  if (!task) throw new NotFoundError("Subtask hoặc Task không tồn tại");
+  return task;
+};
+
+/**
+ * Xóa Subtask
+ */
+const deleteSubTask = async (taskId, subTaskId) => {
+  const query = mongoose.isValidObjectId(taskId)
+    ? { _id: taskId }
+    : { taskId: taskId };
+
+  const task = await Task.findOneAndUpdate(
+    query,
+    {
+      $pull: { subTasks: { _id: subTaskId } },
+    },
+    { new: true }
+  );
+
+  if (!task) throw new NotFoundError("Công việc không tồn tại");
+  return task;
+};
+
 export {
   createTask,
   getAllTasks,
@@ -238,4 +307,7 @@ export {
   updateTask,
   deleteTask,
   restoreTask,
+  addSubTask,
+  updateSubTask,
+  deleteSubTask,
 };
