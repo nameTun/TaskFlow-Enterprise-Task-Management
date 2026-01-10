@@ -6,6 +6,7 @@ import {
   updateTaskController,
   deleteTaskController,
   restoreTaskController,
+  deletePermanentTaskController,
   getTrashController,
   addSubTaskController,
   updateSubTaskController,
@@ -34,6 +35,19 @@ const router = express.Router();
  *         description: Danh sách task đã xóa
  */
 router.get('/trash', getTrashController);
+
+/**
+ * @swagger
+ * /tasks/trash/{id}:
+ *   delete:
+ *     summary: Xóa vĩnh viễn công việc
+ *     tags: [Tasks]
+ */
+router.delete(
+  "/trash/:id",
+  restrictTo("admin", "team_lead", "user"),
+  deletePermanentTaskController
+);
 
 /**
  * @swagger

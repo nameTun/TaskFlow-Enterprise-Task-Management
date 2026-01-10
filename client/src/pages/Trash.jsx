@@ -10,7 +10,7 @@ import {
   Card,
   Avatar,
 } from "antd";
-import { RotateCcw } from "lucide-react";
+import { RotateCcw, Trash2 } from "lucide-react";
 import taskService from "../services/task.service";
 import dayjs from "dayjs";
 
@@ -53,6 +53,25 @@ const Trash = () => {
           fetchTrash(); // Refresh list
         } catch (error) {
           message.error("Khôi phục thất bại");
+        }
+      },
+    });
+  };
+
+  const handleDeleteForever = (taskId) => {
+    confirm({
+      title: "Xóa vĩnh viễn công việc?",
+      content: "Hành động này KHÔNG THỂ hoàn tác. Bạn có chắc chắn muốn xóa?",
+      okText: "Xóa vĩnh viễn",
+      okType: "danger",
+      cancelText: "Hủy",
+      onOk: async () => {
+        try {
+          await taskService.deletePermanentTask(taskId);
+          message.success("Đã xóa vĩnh viễn công việc");
+          fetchTrash();
+        } catch (error) {
+          message.error("Xóa thất bại");
         }
       },
     });
@@ -111,6 +130,15 @@ const Trash = () => {
             onClick={() => handleRestore(record.id || record._id)}
           >
             Restore
+          </Button>
+          <Button
+            type="primary"
+            danger
+            icon={<Trash2 size={16} />}
+            size="small"
+            onClick={() => handleDeleteForever(record.id || record._id)}
+          >
+            Delete Forever
           </Button>
         </Space>
       ),

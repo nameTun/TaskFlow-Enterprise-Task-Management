@@ -132,7 +132,7 @@ const options = {
             email: {
               type: "string",
               format: "email",
-              example: "admin@gmail.com",
+              example: "admin@taskflow.com",
             },
             password: {
               type: "string",

@@ -63,6 +63,15 @@ const taskService = {
   },
 
   /**
+   * Xóa vĩnh viễn task
+   * @param {string} id
+   */
+  deletePermanentTask: async (id) => {
+    const response = await api.delete(`/tasks/trash/${id}`);
+    return response.data;
+  },
+
+  /**
    * Thêm subtask
    * @param {string} taskId
    * @param {Object} data - { title }

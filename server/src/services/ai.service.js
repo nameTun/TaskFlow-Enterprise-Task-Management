@@ -1,9 +1,9 @@
 import { tools } from "../utils/ai-tools.utils.js";
-import { getAllTasks } from "../services/task.service.js";
+import { getAllTasks, createTask } from "../services/task.service.js";
 import { TaskPolicy } from "../policies/task.policy.js";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import Task from "../models/task.model.js";
-import User from "../models/user.model.js"; 
+import User from "../models/user.model.js";
 import Team from "../models/team.model.js";
 
 class AiService {
@@ -14,10 +14,10 @@ class AiService {
     if (process.env.GEMINI_API_KEY) {
       this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     } else {
-      console.warn("⚠️ API_KEY is missing. AI Service will fail.");
+      console.warn("⚠️ GEMINI_API_KEY is missing. AI Service will fail.");
     }
   }
-  
+
   /**
    * Helper: Chờ một khoảng thời gian (ms)
    */
@@ -26,16 +26,22 @@ class AiService {
   }
 
   getSystemInstruction(user) {
-    const today = new Date().toLocaleDateString("vi-VN");
-    // Tối ưu hóa prompt ngắn gọn nhất có thể để tiết kiệm Token
-    return `You are TaskFlow AI. Date: ${today}. User: ${user.name} (Role: ${user.role}).
-    Mission: Help manage tasks via tools.
+    const now = new Date();
+    const dateStr = now.toLocaleDateString("vi-VN", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    const timeStr = now.toLocaleTimeString("vi-VN");
+
+    return `You are TaskFlow AI. 
+    Current Time: ${dateStr} ${timeStr} (ISO: ${now.toISOString()}).
+    User: ${user.name} (Role: ${user.role}).
+    Mission: Help manage tasks.
+    
+    CRITICAL RULE FOR DATES:
+    - ALWAYS convert relative dates (e.g., "ngày mai", "cuối tuần", "thứ 6 tuần sau") to exact ISO 8601 format (YYYY-MM-DD) based on Current Time.
+    - Example: If today is Monday 2023-10-01 and user says "Friday", use "2023-10-05".
+    
     Rules:
     1. Answer briefly in Vietnamese Markdown.
-    2. Use 'getMyTasks' for listing/searching tasks.
-    3. Use 'getSystemStats' for admin stats.
-    4. Use 'createTask' to add tasks.
-    5. If user asks "Who am I?", use context provided.`;
+    2. Use tools for actions.`;
   }
 
   getFunctionCallsFromResponse(response) {
@@ -90,7 +96,7 @@ class AiService {
           visibility: user.teamId ? "team" : "private",
         };
         if (args.dueDate) payload.dueDate = new Date(args.dueDate);
-        const newTask = await taskService.createTask(user._id, payload);
+        const newTask = await createTask(user._id, payload);
         return { status: "success", message: `Created task ${newTask.taskId}` };
       }
 
@@ -130,8 +136,7 @@ class AiService {
         if ((isRateLimit || isServerBusy) && i < retries - 1) {
           const waitTime = 2000 * (i + 1); // Đợi 2s, 4s, 6s...
           console.warn(
-            `⚠️ Rate limit hit. Retrying in ${waitTime / 1000}s... (Attempt ${
-              i + 1
+            `⚠️ Rate limit hit. Retrying in ${waitTime / 1000}s... (Attempt ${i + 1
             }/${retries})`
           );
           await this.sleep(waitTime);

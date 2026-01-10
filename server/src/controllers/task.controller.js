@@ -6,6 +6,7 @@ import {
   updateTask,
   deleteTask,
   restoreTask,
+  deletePermanently,
   addSubTask,
   updateSubTask,
   deleteSubTask,
@@ -162,6 +163,21 @@ const deleteSubTaskController = asyncHandler(async (req, res) => {
   }).send(res);
 });
 
+// Xóa vĩnh viễn task
+const deletePermanentTaskController = asyncHandler(async (req, res) => {
+  const task = await getTaskById(req.params.id, true);
+
+  // Policy Check: DELETE_PERMANENT 
+  // (Thường Admin hoặc chính chủ mới được xóa vĩnh viễn)
+  ensure("DELETE", req.user, task);
+
+  await deletePermanently(req.params.id);
+
+  new OK({
+    message: "Xóa vĩnh viễn công việc thành công",
+  }).send(res);
+});
+
 export {
   createTaskController,
   getAllTasksController,
@@ -170,6 +186,7 @@ export {
   deleteTaskController,
   getTrashController,
   restoreTaskController,
+  deletePermanentTaskController,
   addSubTaskController,
   updateSubTaskController,
   deleteSubTaskController,
