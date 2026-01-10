@@ -2,7 +2,8 @@ import app from "./src/server.js";
 
 const PORT = process.env.PORT || 3055;
 
-const server = app.listen(PORT, () => {
+// Bind to 0.0.0.0 specifically for Render/Docker environments
+const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`WSV eCommerce start with ${PORT}`);
 });
 
