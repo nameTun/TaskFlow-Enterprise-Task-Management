@@ -12,7 +12,7 @@ const api = axios.create({
   // Ví dụ: 'http://localhost:3000/api' cho Express server ở local
 
   // baseURL: process.env.NODE_ENV === "development" ? API_BASE_URL : "/api",
-  baseURL: "/api",
+  baseURL: API_BASE_URL,
 
   // `withCredentials: true` là cấu hình CỰC KỲ QUAN TRỌNG.
   // Nó cho phép Axios (và trình duyệt) tự động gửi và nhận cookies
