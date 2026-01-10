@@ -1,16 +1,14 @@
-const mongoose = require("mongoose");
-
-
+import mongoose from "mongoose";
 const DOCUMENT_NAME = "ActivityLog";
 const COLLECTION_NAME = "ActivityLogs";
 
 const activityLogSchema = new mongoose.Schema(
   {
     // Log của Task nào
-    taskId: { type: Schema.Types.ObjectId, ref: "Task", required: true },
+    taskId: { type: mongoose.Schema.Types.ObjectId, ref: "Task", required: true },
 
     // Ai thực hiện hành động?
-    actorId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    actorId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
 
     // Loại hành động (Cần Enum chuẩn để Frontend dễ map icon)
     action: {

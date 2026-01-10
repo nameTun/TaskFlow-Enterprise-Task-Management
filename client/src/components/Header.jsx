@@ -28,6 +28,7 @@ import notificationService from "../services/notification.service";
 import teamService from "../services/team.service";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 dayjs.extend(relativeTime);
 
@@ -45,6 +46,7 @@ const HeaderComponent = ({
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [openNotif, setOpenNotif] = useState(false);
+  const navigate = useNavigate(); // Init navigate
 
   const {
     token: { colorBgContainer },
@@ -114,6 +116,13 @@ const HeaderComponent = ({
     }
   };
 
+  const handleNotificationClick = (item) => {
+    if (item.payload && item.payload.taskId) {
+      navigate(`/tasks/${item.payload.taskId}`);
+      setOpenNotif(false); // Close popover
+    }
+  };
+
   const notificationContent = (
     <div className="w-[350px] max-h-[400px] overflow-y-auto">
       <List
@@ -128,9 +137,9 @@ const HeaderComponent = ({
         }}
         renderItem={(item) => (
           <List.Item
-            className={`hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors px-4 py-3 cursor-pointer ${
-              !item.isRead ? "bg-blue-50 dark:bg-blue-900/10" : ""
-            }`}
+            onClick={() => handleNotificationClick(item)}
+            className={`hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors px-4 py-3 cursor-pointer ${!item.isRead ? "bg-blue-50 dark:bg-blue-900/10" : ""
+              }`}
           >
             <List.Item.Meta
               avatar={

@@ -13,8 +13,6 @@ import { OAuth2Client } from "google-auth-library";
 import { checkDeadlineAndNotify } from "../helpers/notification.helper.js"; // [NEW] Import helper
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-import crypto from "crypto";
-
 /**
  * @desc Register a new user using a DTO.
  * @param {RegisterUserDto} registerUserDto DTO containing user registration data.

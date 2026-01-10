@@ -1,5 +1,6 @@
-import Task from "../models/task.model.js";
+import ActivityLogService from './activity-log.service.js';
 import User from "../models/user.model.js";
+import Task from "../models/task.model.js";
 import { NotFoundError, ForbiddenError, BadRequestError } from "../core/error.response.js";
 import mongoose from "mongoose";
 
@@ -77,10 +78,12 @@ const createTask = async (userId, taskDto) => {
     //   message: `${creator.name} đã giao cho bạn công việc: ${newTask.title}`
     // });
     /**
-     * NOTE: Logic Notification sẽ được thêm vào ở Phase tiếp theo.
      * Hiện tại ta chỉ đảm bảo Task được tạo đúng đã.
      */
   }
+
+  // LOG ACTIVITY
+  ActivityLogService.logActivity(userId, newTask._id, "CREATE_TASK", { title: newTask.title });
 
   return await newTask.populate([
     { path: "createdBy", select: "name email avatar" },
@@ -183,6 +186,9 @@ const updateTask = async (taskId, updateData) => {
     ? { _id: taskId }
     : { taskId: taskId };
 
+  // Get old task for comparison
+  const oldTask = await Task.findOne(query);
+
   const updatedTask = await Task.findOneAndUpdate(query, updateData, {
     new: true,
     runValidators: true,
@@ -191,6 +197,28 @@ const updateTask = async (taskId, updateData) => {
     .populate("assignedTo", "name email avatar");
 
   if (!updatedTask) throw new NotFoundError("Công việc không tồn tại");
+
+  // LOG ACTIVITY
+  // Check for status change
+  if (updateData.status && oldTask.status !== updateData.status) {
+    ActivityLogService.logActivity(updatedTask.updatedBy || updatedTask.createdBy, updatedTask._id, "UPDATE_STATUS", {
+      from: oldTask.status,
+      to: updateData.status
+    });
+  }
+  // Check for priority change
+  if (updateData.priority && oldTask.priority !== updateData.priority) {
+    ActivityLogService.logActivity(updatedTask.updatedBy || updatedTask.createdBy, updatedTask._id, "UPDATE_PRIORITY", {
+      from: oldTask.priority,
+      to: updateData.priority
+    });
+  }
+  // Check for assignment change
+  if (updateData.assignedTo && oldTask.assignedTo?.toString() !== updateData.assignedTo) {
+    ActivityLogService.logActivity(updatedTask.updatedBy || updatedTask.createdBy, updatedTask._id, "ASSIGN_USER", {
+      assignedTo: updateData.assignedTo
+    });
+  }
 
   return updatedTask;
 };
@@ -299,6 +327,20 @@ const deleteSubTask = async (taskId, subTaskId) => {
   return task;
 };
 
+/**
+ * Xóa vĩnh viễn Task (Hard Delete)
+ */
+const deletePermanently = async (taskId) => {
+  const query = mongoose.isValidObjectId(taskId)
+    ? { _id: taskId }
+    : { taskId: taskId };
+
+  const task = await Task.findOneAndDelete(query);
+  if (!task) throw new NotFoundError("Công việc không tồn tại");
+
+  return true;
+};
+
 export {
   createTask,
   getAllTasks,
@@ -307,6 +349,7 @@ export {
   updateTask,
   deleteTask,
   restoreTask,
+  deletePermanently,
   addSubTask,
   updateSubTask,
   deleteSubTask,

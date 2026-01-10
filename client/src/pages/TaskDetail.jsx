@@ -16,6 +16,7 @@ import {
   Spin,
   message,
   Modal,
+  Tabs,
 } from "antd";
 import {
   ArrowLeft,
@@ -25,6 +26,8 @@ import {
   Download,
   Calendar,
   Trash2,
+  MessageSquare,
+  History,
 } from "lucide-react";
 import {
   TaskStatus,
@@ -33,8 +36,10 @@ import {
   TaskPriorityLabels,
 } from "../constants/constant";
 import taskService from "../services/task.service";
-import EditTaskModal from "../components/EditTaskModal";
+import EditTaskModal from "../components/EditTaskModal"; // Import Component Mới
 import SubtaskList from "../components/SubtaskList";
+import CommentSection from "../components/CommentSection";
+import ActivityTimeline from "../components/ActivityTimeline";
 import dayjs from "dayjs";
 
 const { Title, Paragraph } = Typography;
@@ -227,11 +232,40 @@ const TaskDetail = () => {
             </Card>
 
             {/* Checklist Section */}
-            <Card className="shadow-sm">
+            <Card className="shadow-sm mb-6">
               <SubtaskList
                 task={task}
                 onUpdate={fetchTaskDetail}
                 onTaskUpdate={handleTaskUpdate}
+              />
+            </Card>
+
+            {/* Collaboration Section (Tabs) */}
+            <Card className="shadow-sm">
+              <Tabs
+                defaultActiveKey="1"
+                items={[
+                  {
+                    key: '1',
+                    label: (
+                      <span className="flex items-center gap-2">
+                        <MessageSquare size={16} />
+                        Comments
+                      </span>
+                    ),
+                    children: <CommentSection taskId={task._id || task.id} />,
+                  },
+                  {
+                    key: '2',
+                    label: (
+                      <span className="flex items-center gap-2">
+                        <History size={16} />
+                        History
+                      </span>
+                    ),
+                    children: <ActivityTimeline taskId={task._id || task.id} />,
+                  },
+                ]}
               />
             </Card>
           </div>

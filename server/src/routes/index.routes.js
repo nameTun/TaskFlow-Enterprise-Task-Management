@@ -7,6 +7,8 @@ import userRoutes from "./user.routes.js";
 import aiRoutes from "./ai.routes.js";
 import reportRoutes from "./report.routes.js";
 import notificationRoutes from "./notification.routes.js";
+import commentRouter from "./comment.routes.js";
+import activityLogRouter from "./activity-log.routes.js";
 import { protect } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
@@ -19,16 +21,21 @@ router.use('/auth', authRoutes);
 router.use('/tasks', protect, taskRoutes);
 
 // Team Routes 
-router.use('/teams',protect ,teamRoutes);
+router.use('/teams', protect, teamRoutes);
 
 // User Routes
-router.use("/users",protect, userRoutes);
+router.use("/users", protect, userRoutes);
 
 router.use("/notifications", protect, notificationRoutes);
 
 // AI Routes
-router.use("/ai", protect, aiRoutes); 
+router.use("/ai", protect, aiRoutes);
 
 // Dashboard data analysis Routes
 router.use("/reports", protect, reportRoutes);
+
+// Collaboration Routes
+router.use("/comments", protect, commentRouter);
+router.use("/activity-logs", protect, activityLogRouter);
+
 export default router;

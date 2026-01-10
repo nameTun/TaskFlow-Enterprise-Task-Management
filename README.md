@@ -1,36 +1,90 @@
 # 🚀 Enterprise Task Management System (TaskFlow)
 
-![Status](https://img.shields.io/badge/Status-Active-success?style=flat-square)
-![Node](https://img.shields.io/badge/Node.js-v18+-green?style=flat-square)
-![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)
+![Status](https://img.shields.io/badge/Status-Active-success?style=for-the-badge&logo=statuspage)
+![Node](https://img.shields.io/badge/Node.js-v18+-green?style=for-the-badge&logo=nodedotjs)
+![React](https://img.shields.io/badge/React-18-blue?style=for-the-badge&logo=react)
+![MongoDB](https://img.shields.io/badge/MongoDB-Enterprise-forestgreen?style=for-the-badge&logo=mongodb)
+![Gemini](https://img.shields.io/badge/AI-Gemini_Pro-8E75B2?style=for-the-badge&logo=googlebard)
 
-> **Hệ thống quản lý công việc bảo mật cao, tích hợp AI Agent, thiết kế theo kiến trúc Layered Architecture.**
+> **Hệ thống Quản lý Công việc Doanh nghiệp bảo mật cao, tích hợp AI Agent, và tuân thủ Kiến trúc Phân lớp (Layered Architecture).**
+> *Dự án được xây dựng để demonstrate năng lực Engineering chuyên sâu về Backend, Bảo mật, và System Design.*
+
+---
+
+## 📸 Demo & Highlights
+![Dashboard Overview](docs/assets/dashbroard-admin.png)
+
+### 🎥 Live Demo:
+![TaskFlow Demo](docs/assets/gif/demo-web.gif)
+
+*(Giao diện Dashboard trực quan và thao tác mượt mà)*
 
 ---
 
 ## 📖 Mục lục
-1. [Giới thiệu & Vấn đề](#-giới-thiệu--vấn-đề)
-2. [Kiến trúc hệ thống](#-kiến-trúc-hệ-thống)
-3. [Tính năng nổi bật (Key Highlights)](#-tính-năng-nổi-bật)
-4. [Cài đặt & Chạy thử](#-cài-đặt--chạy-thử-trong-1-phút)
-5. [Tài liệu API](#-tài-liệu-api)
+1. [Vấn đề & Giải pháp](#-vấn-đề--giải-pháp)
+2. [Sức mạnh của AI Agent](#-sức-mạnh-của-ai-agent-vũ-khí-bí-mật) 🤖 
+3. [Công nghệ sử dụng (Tech Stack)](#-công-nghệ-sử-dụng-tech-stack) 🛠 
+4. [Kiến trúc Hệ thống](#-kiến-trúc-hệ-thống)
+5. [Điểm nhấn Kỹ thuật](#-điểm-nhấn-kỹ-thuật)
+6. [Hướng dẫn Cài đặt](#-hướng-dẫn-cài-đặt)
+7. [Liên hệ](#-liên-hệ) 📬 
 
 ---
 
-## 💡 Giới thiệu & Vấn đề
+## 💡 Vấn đề & Giải pháp
 
-Khi xây dựng các ứng dụng quản lý doanh nghiệp, các giải pháp "Todo App" cơ bản thường gặp phải các vấn đề:
-1.  **Code Spaghetti:** Logic nằm lộn xộn trong Controller, khó bảo trì khi mở rộng.
-2.  **Bảo mật kém:** Lưu Token ở LocalStorage (dễ bị XSS), không có Rate Limit.
-3.  **Thiếu tính tương tác:** Chỉ là CRUD đơn thuần, không có AI hỗ trợ.
+Các ứng dụng TODO cơ bản thường gặp phải những **anti-patterns** nghiêm trọng khi mở rộng cho doanh nghiệp:
+1.  **"Spaghetti Code":** Logic nghiệp vụ trộn lẫn trong Controller.
+2.  **Bảo mật yếu:** Lưu Token ở LocalStorage (dễ bị XSS), thiếu cơ chế Refresh Token an toàn.
+3.  **Hard-coded Authorization:** Chỉ check `if (role === 'admin')` thay vì cơ chế phân quyền động.
 
-**👉 Giải pháp của tôi:** TaskFlow được xây dựng để chứng minh năng lực **Backend Engineering** với cấu trúc 3 tầng (3-Layer), bảo mật đa lớp và tích hợp Gemini AI để thực hiện Function Calling.
+**👉 Giải pháp TaskFlow:**
+Tôi xây dựng TaskFlow với tư duy **"Security First"** và **"Clean Architecture"**, đảm bảo code dễ bảo trì, dễ test và an toàn tuyệt đối.
 
 ---
 
-## 🏗 Kiến trúc hệ thống
+## 🤖 Sức mạnh của AI Agent
 
-Dự án áp dụng triệt để mô hình **Separation of Concerns**:
+![AI Assistant Demo](docs/assets/chat-with-AI.png)
+
+TaskFlow không sử dụng chatbot thông thường. Tôi đã tích hợp **Gemini Pro** để biến AI thành một **Agent** có khả năng tương tác sâu với hệ thống:
+
+### 1. Natural Language Processing (NLP) to Action
+Người dùng có thể ra lệnh bằng ngôn ngữ tự nhiên, AI sẽ phân tích và thực thi hành động tương ứng.
+*   🗣️ **User:** *"Tạo task hoàn thành chức năng login và register với hạn deadline là cuối tuần này"*
+*   ⚙️ **System:** Tự động trích xuất `title`, `deadline`, `priority` và gọi API `createTask`.
+
+### 2. Context-Aware Assistance
+AI hiểu ngữ cảnh của dự án và dữ liệu hiện tại.
+*   🗣️ **User:** *"Tôi còn bao nhiêu task chưa làm?"*
+*   ⚙️ **System:** AI gọi hàm `getTasks({ status: 'todo', dueDate: 'this_week' })` và tổng hợp báo cáo ngắn gọn.
+
+
+---
+
+## � Công nghệ sử dụng (Tech Stack)
+
+### Backend (Core)
+*   **Node.js & Express**: Xây dựng RESTful API hiệu năng cao, xử lý Non-blocking I/O.
+*   **MongoDB & Mongoose**: Database NoSQL linh hoạt, Modeling dữ liệu chặt chẽ.
+*   **JWT (JSON Web Token)**: Cơ chế xác thực Stateless (Access + Refresh Token trong HttpOnly Cookie).
+*   **Google Generative AI SDK**: Tích hợp Large Language Model (Gemini Pro).
+*   **Helmet & Cors**: Bảo mật HTTP Headers và config Cross-Origin.
+
+### Frontend (Client)
+*   **React 18 (Vite)**: Framework UI hiện đại, tốc độ build siêu nhanh.
+*   **Ant Design 5.0**: Hệ thống Design System chuẩn doanh nghiệp, giao diện nhất quán.
+*   **TailwindCSS**: Utility-first CSS framework giúp styling nhanh chóng.
+*   **Zustand**: Quản lý State đơn giản, nhẹ và hiệu quả (thay thế Redux).
+*   **Axios**: HTTP Client với Interceptors (xử lý auto-refresh token).
+
+
+---
+
+## 🏗 Kiến trúc Hệ thống
+
+Dự án áp dụng mô hình **3-Layer Architecture** tách biệt hoàn toàn trách nhiệm:
 
 ```mermaid
 graph LR
@@ -42,92 +96,57 @@ graph LR
     D -->|AI Integration| G[Gemini API]
 ```
 
-*   **Controller:** "Skinny". Chỉ tiếp nhận request, gọi Service và trả response.
-*   **Service:** "Fat". Chứa toàn bộ Business Logic (VD: Logic giao việc, check quyền Team Lead).
-*   **DTO (Data Transfer Object):** Filter dữ liệu đầu vào/ra, đảm bảo không lộ field nhạy cảm (như `passwordHash`).
+*   **Controller Layer:** "Skinny". Chỉ tiếp nhận request và gọi Service.
+*   **Service Layer:** "Fat". Chứa toàn bộ logic nghiệp vụ (Business Rules).
+*   **Model Layer:** Tương tác database.
 
 ---
 
-## 🔥 Tính năng nổi bật
+## 🔥 Điểm nhấn Kỹ thuật
 
-### 1. 🔐 Enterprise Security (Ưu tiên hàng đầu)
-*   **JWT Rotation:** Access Token (15p) + Refresh Token (7 ngày).
-*   **HttpOnly Cookie:** Chống XSS, Refresh Token được lưu và rotation trong Cookie bảo mật.
-*   **Rate Limiting:** Chống Spam/DDoS (Giới hạn 100 req/15p).
-*   **Helmet:** Bảo vệ HTTP Headers.
-
-### 2. 🤖 AI Agent (Gemini Function Calling)
-Không chỉ là Chatbot, AI trong hệ thống này đóng vai trò là một **Agent**:
-*   Hiểu ngôn ngữ tự nhiên: *"Tạo task họp team lúc 2h chiều mai"*.
-*   **Function Calling:** AI tự động trích xuất dữ liệu và gọi hàm `createTask` hoặc `getMyTasks` trong Service để thực thi hành động thật.
-
-### 3. 👥 Team Collaboration & RBAC
-*   **Role-Based Access Control:** Admin, Team Lead, Member, Viewer.
-*   **Logic nghiệp vụ:** Member không thể xem task của team khác, chỉ Team Lead mới được xóa thành viên.
+1.  **Enterprise Security:** Cơ chế **JWT Rotation** (Refresh Token lưu HttpOnly Cookie) chống XSS và đánh cắp session.
+2.  **Centralized Error Handling:** Xử lý lỗi tập trung, trả về format chuẩn cho mọi request.
+3.  **Advanced Policy-Based Authorization (ABAC):**
+    *   Thay vì hard-code check quyền trong Controller (Anti-pattern), tôi tách biệt logic này vào thư mục `server/src/policies`.
+    *   **Cơ chế:** Kiểm tra quyền dựa trên thuộc tính (Attribute) của User và Resource.
+        *   *Ví dụ:* `TaskPolicy.canDelete(user, task)` -> Logic: "Admin được xóa mọi lúc. User thường chỉ được xóa task do mình tạo nếu task đó chưa hoàn thành."
+    *   **Lợi ích:** Dễ dàng Unit Test độc lập các logic phân quyền phức tạp này.
 
 ---
 
-## ⚡ Cài đặt & Chạy thử (Trong 1 phút)
+## ⚡ Hướng dẫn Cài đặt
 
-Yêu cầu: Node.js, MongoDB (Local hoặc Atlas URL).
+### Yêu cầu
+*   Node.js v14+
+*   MongoDB URI
 
-### Bước 1: Clone & Setup
+### 1. Setup Backend
 ```bash
-git clone https://github.com/your-username/enterprise-task-manager.git
-cd enterprise-task-manager
-
-# Cài đặt dependency cho cả Server và Client (chạy 1 lệnh duy nhất)
-npm run install-all
-```
-
-### Bước 2: Cấu hình môi trường
-Tạo file `server/.env`:
-```env
-PORT=5000
-MONGO_URI=mongodb://localhost:27017/enterprise_task_db
-JWT_SECRET=complex_secret_key
-JWT_REFRESH_SECRET=complex_refresh_secret
-CLIENT_URL=http://localhost:5173
-API_KEY=your_google_gemini_api_key
-```
-
-### Bước 3: Seed Data (Tạo Admin mặc định)
-```bash
-npm run seed
-# Admin mặc định: admin@taskflow.com / Admin@123456
-```
-
-### Bước 4: Chạy dự án
-```bash
-# Chạy song song cả Backend và Frontend
+cd server
+npm install
+# Tạo file .env theo mẫu
+npm run seed # Tạo Admin: admin@taskflow.com / Admin@123456
 npm run dev
 ```
-*   Server: http://localhost:5000
-*   Client: http://localhost:5173
+> Server: `http://localhost:3000`
 
----
+### 2. Setup Frontend
+```bash
+cd client
+npm install
+npm run dev
+```
+> Client: `http://localhost:5173`
 
-## 📚 Tài liệu API
-
-Dự án tích hợp sẵn **Swagger/OpenAPI**.
-Sau khi chạy server, truy cập: **[http://localhost:5000/api-docs](http://localhost:5000/api-docs)**
-
----
-
-## 👨‍💻 Tech Stack
-
-*   **Backend:** Node.js, Express, MongoDB, Redis (Planned), Gemini AI SDK.
-*   **Frontend:** React 18, Vite, Ant Design, TailwindCSS, Zustand.
-*   **Tools:** Docker, Swagger, Eslint.
-
----
-*Project developed by **Phan Đình Tuân**.*
 ---
 
 ## 📬 Liên hệ
 
--   Email: tuanktvn2001@gmail.com
--   Github: 
--   LinkedIn: 
+Dự án được phát triển và duy trì bởi:
 
+*   **Phan Đình Tuân** - *Backend Developer*
+*   📧 Email: [tuanktvn2001@gmail.com](mailto:tuanktvn2001@gmail.com)
+*   🐙 Github: [github.com/nameTun](https://github.com/nameTun)
+*   💼 LinkedIn: [linkedin.com/in/phan-dinh-tuan](https://www.linkedin.com/in/phan-dinh-tuan)
 ---
+*Cảm ơn đã quan tâm đến dự án TaskFlow!* 🚀
