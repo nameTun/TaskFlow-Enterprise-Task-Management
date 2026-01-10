@@ -54,16 +54,12 @@ const generateTokens = async (user) => {
 const setRefreshTokenCookie = (res, refreshToken) => {
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
-    // secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-    // secure: isProduction, // Localhost (http) -> false, Production (https) -> true
-    // Khi dùng Proxy (Client -> Proxy -> Server), trình duyệt thấy cùng domain
-    // nên Lax là chế độ an toàn và tương thích nhất.
-    sameSite: "lax",
+    // Production (Render+Vercel) bắt buộc phải là Secure + SameSite='None' để gửi cookie chéo domain
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     maxAge: parseInt(
       process.env.JWT_REFRESH_EXPIRES_IN_MS || 7 * 24 * 60 * 60 * 1000
-    ), // 7 ngày
-    // path: "/", // Set path root để mọi request đều check được nếu cần
+    ),
     path: "/api/auth",
   });
 };
