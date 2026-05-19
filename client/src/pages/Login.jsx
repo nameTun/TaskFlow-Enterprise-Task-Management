@@ -249,7 +249,7 @@ const Login = () => {
           </div>
 
           <p className="text-center text-xs text-gray-400 mt-8">
-            &copy; 2024 Enterprise Task System. All rights reserved.
+            &copy; 2025 Enterprise Task System. All rights reserved.
           </p>
         </div>
       </div>

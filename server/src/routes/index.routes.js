@@ -17,7 +17,7 @@ const router = express.Router();
 // Auth Routes: Đăng ký, Đăng nhập, Refresh Token...
 router.use('/auth', authRoutes);
 
-// Task Routes: CRUD Tasks
+// Task Routes: CRUD Tasks 
 router.use('/tasks', protect, taskRoutes);
 
 // Team Routes 

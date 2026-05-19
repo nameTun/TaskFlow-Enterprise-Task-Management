@@ -34,7 +34,6 @@ const protect = async (req, res, next) => {
     // Bỏ qua trường passwordHash để không trả về mật khẩu
     // gắn thêm thông tin user cho bất khi request nào từ client gửi xuống nếu cần xác thực
     req.user = await User.findById(decoded.id).select('-passwordHash');
-
     // Nếu không tìm thấy người dùng
     if (!req.user) {
         return res.status(401).json({ message: 'Không được ủy quyền, không tìm thấy người dùng.' });

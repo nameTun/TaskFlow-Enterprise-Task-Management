@@ -67,7 +67,11 @@ api.interceptors.response.use(
     // Lỗi 401 thường có nghĩa là access token đã hết hạn.
     // `_retry` là một thuộc tính tùy chỉnh ta tự thêm vào để tránh vòng lặp vô tận
     // trong trường hợp API làm mới token cũng trả về 401.
-    if (error.response.status === 401 && !originalRequest._retry) {
+    // if (error.response.status === 401 && !originalRequest._retry) {
+    if (
+      error.response.status === 401 &&
+      !originalRequest._retry &&
+      originalRequest.url !== '/auth/login' && originalRequest.url !== '/auth/refresh-token') {
       originalRequest._retry = true; // Đánh dấu là đã thử lại 1 lần.
 
       try {
@@ -101,7 +105,7 @@ api.interceptors.response.use(
         console.error("Unable to refresh token:", refreshError);
 
         // Xóa trạng thái xác thực khỏi store (đăng xuất người dùng).
-        useAuthStore.getState().clearState();
+        useAuthStore.getState().logout();
 
         // Chuyển hướng người dùng về trang đăng nhập.
 

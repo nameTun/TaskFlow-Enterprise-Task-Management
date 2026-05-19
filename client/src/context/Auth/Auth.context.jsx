@@ -61,7 +61,6 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const response = await api.post("/auth/login", { email, password });
-      // console.log("response from login:", response);
       if (!response || !response.data || !response.data.metadata) {
         throw new Error(response?.data?.message || "Lỗi phản hồi từ máy chủ");
       }
@@ -86,7 +85,6 @@ export const AuthProvider = ({ children }) => {
       });
 
       console.log("response register:", response);
-
       if (!response || !response.data || !response.data.metadata) {
         throw new Error(response?.data?.message || "Lỗi phản hồi từ máy chủ");
       }

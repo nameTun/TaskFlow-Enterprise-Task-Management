@@ -32,7 +32,6 @@ const createTaskController = asyncHandler(async (req, res) => {
 const getAllTasksController = asyncHandler(async (req, res) => {
   // Policy: Lấy filter quyền xem
   const authFilter = TaskPolicy.getReadFilter(req.user);
-
   // Combine với filter từ Client
   const dataFilter = { deletedAt: null, ...authFilter };
 
@@ -61,7 +60,6 @@ const getTrashController = asyncHandler(async (req, res) => {
 
   const tasks = await getDeletedTasks(filter);
   const tasksDto = tasks.map((task) => new TaskDto(task));
-
 
   new OK({
     message: "Lấy thùng rác thành công",

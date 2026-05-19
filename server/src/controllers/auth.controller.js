@@ -28,8 +28,8 @@ const register = asyncHandler(async (req, res) => {
 
 // Đăng nhập
 const login = asyncHandler(async (req, res) => {
-  const { user, accessToken, refreshToken } = await loginUser(req.dto);
 
+  const { user, accessToken, refreshToken } = await loginUser(req.dto);
   setRefreshTokenCookie(res, refreshToken);
 
   new OK({
